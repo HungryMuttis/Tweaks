@@ -64,6 +64,9 @@
     <!-- References - HookGen Assemblies -->
     <ItemGroup>
         <Reference Include="$(MMHOOKManaged)MMHOOK_Assembly-CSharp.dll" />
+        <Reference Include="Zorro.Core.Runtime">
+          <HintPath>E:\GameSaves\Content Warning\Content Warning_Data\Managed\Zorro.Core.Runtime.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="&quot;C:\Program Files\Sandboxie-Plus\Start.exe&quot; /box:Steam &quot;E:\GameSaves\Content Warning\Content Warning.exe&quot;" />
