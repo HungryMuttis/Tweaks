@@ -9,6 +9,7 @@ namespace Tweaks.Features.DeathOxygen
             On.Player.PlayerData.UpdateValues += PlayerData_UpdateValues;
         }
 
+        // HOOKS //
         private static void PlayerData_UpdateValues(On.Player.PlayerData.orig_UpdateValues orig, Player.PlayerData self)
         {
             if (!self.dead)
