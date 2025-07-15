@@ -2,7 +2,7 @@
 
 namespace Tweaks.Features.DeathOxygen
 {
-    //[ModFeature] still in development
+    [ModFeature]
     internal class DeathOxygenFeature : Feature
     {
         public static DeathOxygenFeature Instance { get; private set; } = null!;
@@ -24,7 +24,7 @@ namespace Tweaks.Features.DeathOxygen
             Consumption = config.Bind(
                 FeatureName,
                 nameof(Consumption),
-                1f,
+                0f,
                 """
                 Changes how much oxygen is consumed when the player is dead
                 Set this to 0 to turn off oxygen consumption when player is dead
