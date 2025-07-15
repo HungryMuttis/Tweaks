@@ -2,3 +2,4 @@
 
 ## Features
 - Give oxygen upon player revival
+- Stop oxygen consumption when player is dead
