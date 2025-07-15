@@ -8,8 +8,11 @@ namespace Tweaks
 {
     [ContentWarningPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_VERSION, false)]
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("RugbugRedfern.MyceliumNetworking")]
     public class Tweaks : BaseUnityPlugin
     {
+        public const uint MOD_ID = 2389670781;
+
         public static Tweaks Instance { get; private set; } = null!;
         internal new static ManualLogSource Logger { get; private set; } = null!;
         private FeatureManager Manager = null!;

@@ -15,10 +15,7 @@ namespace Tweaks.Features.DivingBellOxygenRefill
             orig(self);
 
             if (self.isInDiveBell)
-            {
-                Tweaks.Logger.LogWarning(DivingBellOxygenRefillFeature.Instance.RefillRate.Value);
                 self.remainingOxygen = Mathf.Clamp(self.remainingOxygen + DivingBellOxygenRefillFeature.Instance.RefillRate.Value * Time.deltaTime, 0f, self.maxOxygen);
-            }
         }
     }
 }
