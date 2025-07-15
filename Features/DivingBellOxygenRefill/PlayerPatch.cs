@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Tweaks.Features.DivingBellOxygenRefilling
+namespace Tweaks.Features.DivingBellOxygenRefill
 {
     internal class PlayerPatch
     {

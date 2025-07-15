@@ -1,6 +1,6 @@
 ﻿using BepInEx.Configuration;
 
-namespace Tweaks.Features.DivingBellOxygenRefilling
+namespace Tweaks.Features.DivingBellOxygenRefill
 {
     [ModFeature]
     internal class DivingBellOxygenRefillFeature : Feature

@@ -3,4 +3,5 @@
 ## Features
 - Give oxygen upon player revival
 - Stop oxygen consumption when player is dead
-- Refills oxygen when in diving bell
+- Refill oxygen when in diving bell
+- Configure how much oxygen you have
