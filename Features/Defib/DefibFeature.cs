@@ -3,21 +3,14 @@
 namespace Tweaks.Features.Defib
 {
     [ModFeature]
-    internal class DefibFeature : Feature
+    internal class DefibFeature : Feature<DefibFeature>
     {
-        public static DefibFeature Instance { get; private set; } = null!;
+        public override string FeatureName => "Defib";
+        protected override string FeatureDescription => "Restores a configurable amount of oxygen upon revival.";
 
         public ConfigEntry<Enums.Setting> Setting { get; private set; } = null!;
         public ConfigEntry<float> Amount { get; private set; } = null!;
         public ConfigEntry<Enums.Type> Type { get; private set; } = null!;
-
-        internal override string FeatureName => "Defib";
-        protected override string FeatureDescription => "Restores a configurable amount of oxygen upon revival.";
-
-        public DefibFeature()
-        {
-            Instance = this;
-        }
 
         public override void CreateConfig(ConfigFile config)
         {

@@ -7,6 +7,7 @@
             On.Player.Start += Player_Start;
         }
 
+        // HOOKS //
         private static System.Collections.IEnumerator Player_Start(On.Player.orig_Start orig, Player self)
         {
             self.data.remainingOxygen = OxygenSettingsFeature.Instance.MaxOxygen.Value;

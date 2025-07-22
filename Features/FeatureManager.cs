@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 
 namespace Tweaks.Features
 {
     internal class FeatureManager
     {
-        private readonly List<Feature> Features = [];
-        private readonly ManualLogSource Logger;
+        private readonly List<IFeature> Features = [];
+        private readonly BepInEx.Logging.ManualLogSource Logger;
         private readonly ConfigFile Config;
 
-        public FeatureManager(ManualLogSource logger, ConfigFile config)
+        public FeatureManager(BepInEx.Logging.ManualLogSource logger, ConfigFile config)
         {
             Logger = logger;
             Config = config;
@@ -22,14 +21,29 @@ namespace Tweaks.Features
 
         public void RegisterFeaturesFromAssembly()
         {
-            Logger.LogDebug("Scanning for features...");
-            IEnumerable<Type> featureTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(Feature)) && t.GetCustomAttribute<ModFeature>() != null);
-            foreach (Type type in featureTypes)
-                if (Activator.CreateInstance(type) is Feature feature)
+            Debug("Scanning for features...");
+            Type baseType = typeof(Feature<>);
+            Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t =>
                 {
-                    Features.Add(feature);
-                    Logger.LogDebug($"Discovered and registered feature: {type.Name}");
-                }
+                    if (!t.IsClass || t.IsAbstract || t.GetCustomAttribute<ModFeatureAttribute>() == null) return false;
+                    Type? current = t.BaseType;
+                    while (current != null)
+                    {
+                        if (current.IsGenericType && current.GetGenericTypeDefinition() == baseType)
+                            return true;
+                        current = current.BaseType;
+                    }
+                    return false;
+                }).ToList()
+                .ForEach(t =>
+                {
+                    if (Activator.CreateInstance(t) is IFeature feature)
+                    {
+                        Features.Add(feature);
+                        Debug($"Discovered and registered feature: {feature.FeatureName}");
+                    }    
+                });
         }
 
         public void InitializeFeatures()
@@ -37,21 +51,22 @@ namespace Tweaks.Features
             Features.ForEach(f =>
             {
                 f.CreateConfig(Config);
-                if (f.Enabled.Value)
+                if (f.Enabled)
                 {
-                    Logger.LogInfo($"Feature '{f.FeatureName}' is enabled. Initializing...");
+                    if (f.Required)
+                        Info($"Feature '{f.FeatureName}' is required. Initializing...");
+                    else
+                        Info($"Feature '{f.FeatureName}' is enabled. Initializing...");
                     f.Initialize();
                 }
                 else
-                {
-                    Logger.LogInfo($"Feature '{f.FeatureName}' is disabled.");
-                }
+                    Info($"Feature '{f.FeatureName}' is disabled.");
             });
         }
 
-        public bool IsAnyFeatureEnabled()
-        {
-            return Features.Any(f => f.Enabled.Value);
-        }
+        private void Debug(string text)
+            => Logger.LogDebug($"[{nameof(FeatureManager)}] {text}");
+        private void Info(string text)
+            => Logger.LogInfo($"[{nameof(FeatureManager)}] {text}");
     }
 }

@@ -3,19 +3,12 @@
 namespace Tweaks.Features.OxygenSettings
 {
     [ModFeature]
-    internal class OxygenSettingsFeature : Feature
+    internal class OxygenSettingsFeature : Feature<OxygenSettingsFeature>
     {
-        public static OxygenSettingsFeature Instance { get; private set; } = null!;
-
-        internal override string FeatureName => "OxygenSettings";
+        public override string FeatureName => "OxygenSettings";
         protected override string FeatureDescription => "Variuos settings related to oxygen";
 
         public ConfigEntry<float> MaxOxygen { get; private set; } = null!;
-
-        public OxygenSettingsFeature()
-        {
-            Instance = this;
-        }
 
         public override void CreateConfig(ConfigFile config)
         {

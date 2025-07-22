@@ -3,19 +3,12 @@
 namespace Tweaks.Features.DivingBellOxygenRefill
 {
     [ModFeature]
-    internal class DivingBellOxygenRefillFeature : Feature
+    internal class DivingBellOxygenRefillFeature : Feature<DivingBellOxygenRefillFeature>
     {
-        public static DivingBellOxygenRefillFeature Instance { get; private set; } = null!;
-
-        internal override string FeatureName => "DivingBellOxygenRefilling";
+        public override string FeatureName => "DivingBellOxygenRefilling";
         protected override string FeatureDescription => "Refills oxygen when player is in diving bell";
 
         public ConfigEntry<float> RefillRate { get; private set; } = null!;
-
-        public DivingBellOxygenRefillFeature()
-        {
-            Instance = this;
-        }
 
         public override void CreateConfig(ConfigFile config)
         {

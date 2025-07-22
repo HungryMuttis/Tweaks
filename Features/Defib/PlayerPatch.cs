@@ -38,7 +38,7 @@ namespace Tweaks.Features.Defib
                     calculatedOxygen = amount;
                     break;
                 default:
-                    Tweaks.Logger.LogWarning("Invalid setting: 'Oxygen.Setting'. Review config file.");
+                    DefibFeature.Error("Invalid setting: 'Oxygen.Setting'. Review config file.");
                     calculatedOxygen = remainingOxygen;
                     break;
             }

@@ -3,19 +3,12 @@
 namespace Tweaks.Features.DeathOxygen
 {
     [ModFeature]
-    internal class DeathOxygenFeature : Feature
+    internal class DeathOxygenFeature : Feature<DeathOxygenFeature>
     {
-        public static DeathOxygenFeature Instance { get; private set; } = null!;
-
-        public ConfigEntry<float> Consumption { get; private set; } = null!;
-
-        internal override string FeatureName => "DeathOxygen";
+        public override string FeatureName => "DeathOxygen";
         protected override string FeatureDescription => "Changes how much oxygen is consumed when the Player is dead.";
 
-        public DeathOxygenFeature()
-        {
-            Instance = this;
-        }
+        public ConfigEntry<float> Consumption { get; private set; } = null!;
 
         public override void CreateConfig(ConfigFile config)
         {

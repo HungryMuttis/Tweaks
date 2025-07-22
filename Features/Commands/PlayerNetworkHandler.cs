@@ -13,7 +13,7 @@ namespace Tweaks.Features.Commands
             player = GetComponent<Player>();
             if (player == null || player.refs.view == null)
             {
-                Tweaks.Logger.LogError($"[{nameof(PlayerNetworkHandler)}] Could not find Player component of PhotonView. Destroying self.");
+                CommandsFeature.Error($"Could not find Player component of PhotonView. Destroying self.");
                 Destroy(this);
                 return;
             }
@@ -33,44 +33,32 @@ namespace Tweaks.Features.Commands
             if (player != null && player.data != null)
             {
                 player.data.remainingOxygen = Mathf.Clamp(newOxygenValue, 0f, player.data.maxOxygen);
-                Tweaks.Logger.LogDebug($"Set player '{player.refs.view.Owner.NickName}' oxygen to {newOxygenValue}");
+                CommandsFeature.Debug($"Set player '{player.refs.view.Owner.NickName}' oxygen to {newOxygenValue}");
             }
         }
 
-        public static void SendSetOxygenRequest(string playerName, float oxygen)
+        public static void SendSetOxygenRequest(Player targetPlayer, float oxygen, bool percent = false)
         {
-            if (PlayerHandler.instance == null || PlayerHandler.instance.players == null)
-            {
-                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] PlayerHandler not ready.");
-                return;
-            }
-
-            Player? targetPlayer = null;
-            foreach (Player p in PlayerHandler.instance.players)
-            {
-                if (string.Equals(p.refs.view?.Owner?.NickName, playerName, System.StringComparison.Ordinal))
-                {
-                    targetPlayer = p;
-                    break;
-                }
-            }
-
             if (targetPlayer == null)
             {
-                Debug.LogError($"Could not find player '{playerName}'");
+                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] Target player cannot be null.");
                 return;
             }
 
             int? viewId = targetPlayer.refs.view?.ViewID;
+            string playerName = targetPlayer.refs.view?.Owner?.NickName ?? "Unknown Player";
+
             if (viewId == null)
             {
-                Debug.LogError($"Player '{playerName}' ViewID is null");
+                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] Player '{playerName}' has a null ViewID.");
                 return;
             }
 
-            MyceliumNetwork.RPCMasked(Tweaks.MOD_ID, nameof(SetOxygenRPC), ReliableType.Reliable, (int)viewId, oxygen);
-            Tweaks.Logger.LogDebug($"Sent RPC to '{playerName}' to set oxygen to {oxygen} using mask {viewId}");
-            Debug.Log($"Player '{playerName}' oxygen set to {oxygen}");
+            float oxygenValue = percent ? targetPlayer.data.maxOxygen * oxygen / 100f : oxygen;
+
+            MyceliumNetwork.RPCMasked(Tweaks.MOD_ID, nameof(SetOxygenRPC), ReliableType.Reliable, viewId.Value, oxygenValue);
+            CommandsFeature.Debug($"Sent RPC to '{playerName}' to set oxygen to {oxygenValue} using mask {viewId.Value}");
+            Debug.Log($"Player '{playerName}' oxygen set to {oxygenValue}");
         }
     }
 }

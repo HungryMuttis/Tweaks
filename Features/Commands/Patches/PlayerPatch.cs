@@ -1,4 +1,6 @@
-﻿namespace Tweaks.Features.Commands
+﻿using System.Collections;
+
+namespace Tweaks.Features.Commands.Patches
 {
     internal class PlayerPatch
     {
@@ -7,7 +9,7 @@
             On.Player.Start += Player_Start;
         }
 
-        private static System.Collections.IEnumerator Player_Start(On.Player.orig_Start orig, Player self)
+        private static IEnumerator Player_Start(On.Player.orig_Start orig, Player self)
         {
             yield return orig(self);
 
