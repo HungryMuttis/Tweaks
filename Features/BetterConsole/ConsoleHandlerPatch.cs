@@ -1,14 +1,13 @@
 ﻿using HarmonyLib;
-using Mono.Cecil;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
+using UnityEngine.Rendering;
+using Zorro.Core;
 using Zorro.Core.CLI;
 
 namespace Tweaks.Features.BetterConsole
@@ -33,15 +32,16 @@ namespace Tweaks.Features.BetterConsole
             );
             HarmonyPatcher.Patch(
                 typeof(ConsoleHandler), nameof(ConsoleHandler.ProcessCommand),
-                prefix: (typeof(ConsoleHandlerPatch), nameof(ProcessCommand_Prefix))
-            );
-            HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), nameof(ConsoleHandler.FindSuggestions),
-                postfix: (typeof(ConsoleHandlerPatch), nameof(FindSuggestions_Postfix))
+                prefix: (typeof(ConsoleHandlerPatch), nameof(ProcessCommand_Override))
             );
             HarmonyPatcher.Patch(
                 typeof(ConsoleHandler), "<FindSuggestions>g__FindCommandSuggestions|13_1", [typeof(string)],
-                postfix: (typeof(ConsoleHandlerPatch), nameof(FilterCommandSuggestions_Postfix))
+                prefix: (typeof(ConsoleHandlerPatch), nameof(FindCommandSuggestions_Override))
+            );
+            Type DisplayClass13_0 = typeof(ConsoleHandler).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).FirstOrDefault(t => t.Name.Contains("c__DisplayClass13_0"));
+            HarmonyPatcher.Patch(
+                typeof(ConsoleHandler), "<FindSuggestions>g__AddParameterSuggestions|13_0", [typeof(List<Suggestion>), DisplayClass13_0.MakeByRefType()],
+                prefix: (typeof(ConsoleHandlerPatch), nameof(AddParameterSuggestions_Override))
             );
         }
 
@@ -92,7 +92,7 @@ namespace Tweaks.Features.BetterConsole
 
             Parsers = (Dictionary<Type, CLITypeParser>)AccessTools.Field(typeof(ConsoleHandler), "m_typeParsers").GetValue(null);
         }
-        public static bool ProcessCommand_Prefix(string command, ref bool __result)
+        public static bool ProcessCommand_Override(string command, ref bool __result)
         {
             if (HandleAmbiguity(command, ref __result)) return false;
             _ambiguityContext = null;
@@ -109,7 +109,7 @@ namespace Tweaks.Features.BetterConsole
                 return false;
             }
 
-            string[]? parts = Zorro.Core.StringUtility.SplitOnFirstOfChar(command, '.');
+            string[]? parts = StringUtility.SplitOnFirstOfChar(command, '.');
             if (parts == null)
             {
                 __result = false;
@@ -169,104 +169,59 @@ namespace Tweaks.Features.BetterConsole
 
             return HandleCommandExecution(validCmds, providedArgs, commandName, ref __result);
         }
-        public static void FindSuggestions_Postfix(string input, ref List<Suggestion> __result)
+        public static bool FindCommandSuggestions_Override(string input, ref List<Suggestion> __result)
         {
-            if (input == null) return;
-
-            if (!input.Contains('.') && "Help".StartsWith(input, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(input))
+            __result = [];
+            if (string.IsNullOrEmpty(input)) return false;
+            if (!input.Contains('.'))
             {
-                if (!__result.Any(s => s is DomainSuggestion ds && ds.Domain == "Help"))
-                    __result.Insert(0, new DomainSuggestion("Help"));
+                __result = [.. ConsoleCommands.Select(c => c.DomainName).Distinct().Where(d => d.Contains(input, StringComparison.OrdinalIgnoreCase)).Select(d => new DomainSuggestion(d))];
+                if ("Help".Contains(input, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is DomainSuggestion d && d.Domain.Equals("Help", StringComparison.OrdinalIgnoreCase)))
+                    __result.Add(new DomainSuggestion("Help"));
+                return false;
             }
 
-            if (input.Contains(".") && !input.Contains(' '))
+            string[] split = StringUtility.SplitOnFirstOfChar(input, '.');
+            HashSet<ConsoleCommand> possibleCommands = [.. ConsoleCommands.Where(c => c.DomainName == split[0])];
+            if (possibleCommands.Count == 0) return false;
+
+            string cmd = split[1];
+            bool finished = cmd.Contains(' ');
+
+            if (!finished)
             {
-                string[] cparts = input.Split('.');
-                if (!ConsoleCommands.Any(c => c.DomainName.Equals(cparts[0], StringComparison.OrdinalIgnoreCase)))
-                {
-                    __result.Clear();
-                    return;
-                }
-                if ("Help".StartsWith(cparts[1], StringComparison.OrdinalIgnoreCase))
-                    if (!__result.Any(s => s is CommandSuggestion cs && cs.Command == "Help"))
-                        __result.Add(new CommandSuggestion(cparts[0], "Help", []));
+                __result = [.. possibleCommands.Where(c => c.Command.StartsWith(cmd)).Select(c => new CommandSuggestion(c.DomainName, c.Command, c.ParameterInfo))];
+                if ("Help".Contains(cmd, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is CommandSuggestion c && c.Command.Equals("Help", StringComparison.OrdinalIgnoreCase)))
+                    __result.Add(new CommandSuggestion(split[0], "Help", []));
+                return false;
             }
 
-            if (__result.Any(s => s is ParameterSuggestion) || !__result.Any(s => s is CommandSuggestion)) return;
+            string[] splitCommand = cmd.Split(' ');
+            cmd = splitCommand.First();
+            string rawArgs = string.Join(' ', splitCommand.Skip(1));
 
-            string[] parts = input.Split(' ');
-            if (parts.Length < 2 || !input.Contains('.'))
-                return;
+            possibleCommands = [.. possibleCommands.Where(c => c.MethodInfo.Name == cmd && c.ParameterInfo.Length != 0)];
 
-            int index = parts.Length - 2;
-            string text = input.EndsWith(" ") ? "" : parts.Last();
-            string line = "";
-            for (int i = 0; i < parts.Length - 1; i++)
-                line += parts[i] + " ";
+            List<string> args = ParseArguments(rawArgs);
+            bool next = rawArgs.EndsWith(" ");
 
-            List<Suggestion> suggestions = [];
-            foreach (Suggestion suggestion in __result)
+            foreach (ConsoleCommand command in possibleCommands)
             {
-                suggestions.Add(suggestion);
-
-                if (suggestion is not CommandSuggestion cmdSuggestion || cmdSuggestion.ParameterInfos.Length <= index)
-                    continue;
-
-                cmdSuggestion.HighlightParameter(index);
-                ParameterInfo info = cmdSuggestion.ParameterInfos[index];
-                if (!Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser))
-                    continue;
-
-                List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(text);
-                string display = cmdSuggestion.GetDisplayTextWithMaxParameter(index, false);
-                foreach (ParameterAutocomplete autocomplete in autocompletes)
-                    suggestions.Add(new ParameterSuggestion(display, line, autocomplete.Value));
-            }
-
-            __result = suggestions;
-        }
-        public static void FilterCommandSuggestions_Postfix(string input, ref List<Suggestion> __result)
-        {
-            if (__result == null || __result.Count == 0) return;
-
-            string[]? parts = Zorro.Core.StringUtility.SplitOnFirstOfChar(input, '.');
-            if (parts == null) return;
-
-            string name = parts[1].Split(' ').First();
-            string rawArgs = "";
-            if (parts[1].Length > name.Length)
-                rawArgs = parts[1][name.Length..];
-
-            List<string> provided = ParseArguments(rawArgs.TrimStart(' '));
-            bool trailingSpace = rawArgs.EndsWith(" ");
-
-            List<Suggestion> suggestions = [];
-            foreach (Suggestion suggestion in __result)
-            {
-                if (suggestion is not CommandSuggestion cmdSuggestion)
-                {
-                    suggestions.Add(suggestion);
-                    continue;
-                }
-
-                if (trailingSpace && cmdSuggestion.ParameterInfos.Length <= provided.Count) continue;
-                if (cmdSuggestion.ParameterInfos.Length < provided.Count) continue;
+                if (next && command.ParameterInfo.Length <= args.Count) continue;
+                if (command.ParameterInfo.Length < args.Count) continue;
 
                 bool possible = true;
-                for (int i = 0; i < provided.Count; i++)
+                for (int i = 0; i < args.Count; i++)
                 {
-                    string arg = provided[i];
-                    ParameterInfo param = cmdSuggestion.ParameterInfos[i];
-
-                    if ((i == provided.Count - 1) && !trailingSpace)
+                    if (i == args.Count - 1 && !next)
                     {
-                        if (!PossibleArgument(arg, param.ParameterType))
+                        if (!PossibleArgument(args[i], command.ParameterInfo[i].ParameterType))
                         {
                             possible = false;
                             break;
                         }
                     }
-                    else if (!TryConvertParameter(arg, param.ParameterType, out object? _))
+                    else if (!TryConvertParameter(args[i], command.ParameterInfo[i].ParameterType, out object? _))
                     {
                         possible = false;
                         break;
@@ -274,17 +229,44 @@ namespace Tweaks.Features.BetterConsole
                 }
 
                 if (possible)
-                    suggestions.Add(suggestion);
+                    __result.Add(new CommandSuggestion(command.DomainName, command.Command, command.ParameterInfo));
             }
+            return false;
+        }
+        public static bool AddParameterSuggestions_Override(List<Suggestion> suggestions, ref object __1)
+        {
+            FieldInfo? inputfield = __1.GetType().GetField("input");
+            string? input = (string?)inputfield.GetValue(__1);
 
-            __result = suggestions;
+            if (input == null || !StringUtility.MakeSureNoDoublleChar(input, ' ')) return false;
+
+            string[] parts = input.Split(' ');
+            string typeLine = string.Join(' ', parts.Take(parts.Length - 1)) + ' ';
+            int index = parts.Length - 2;
+            if (index < 0) return false;
+            foreach (Suggestion suggestion in suggestions.ToList())
+            {
+                if (suggestion is not CommandSuggestion cmdSuggestion || cmdSuggestion.ParameterInfos.Length <= index || !input.Contains(cmdSuggestion.FullCommand))
+                    continue;
+
+                cmdSuggestion.HighlightParameter(index);
+                ParameterInfo info = cmdSuggestion.ParameterInfos[index];
+                if (!Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser))
+                    continue;
+
+                List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(parts.Last());
+                string displayLine = cmdSuggestion.GetDisplayTextWithMaxParameter(index, false);
+                foreach (ParameterAutocomplete autocomplete in autocompletes)
+                    if (!suggestions.Any(s => s is ParameterSuggestion p && p.ParameterInput == autocomplete.Value))
+                        suggestions.Add(new ParameterSuggestion(displayLine, typeLine, autocomplete.Value));
+            }
+            return false;
         }
 
         // HELPER METHODS //
         private static bool HandleAmbiguity(string command, ref bool result)
         {
-            if (!int.TryParse(command, out int selection) || selection <= 0)
-                return false;
+            if (!int.TryParse(command, out int selection) || selection <= 0) return false;
             result = true;
 
             if (_ambiguityContext == null)
@@ -472,9 +454,7 @@ namespace Tweaks.Features.BetterConsole
             }
             return methods;
         }
-        private static void ConsoleError(string text)
-            => UnityEngine.Debug.LogError(text);
-        private static void ConsoleLog(string text)
-            => UnityEngine.Debug.Log(text);
+        private static void ConsoleError(string text) => UnityEngine.Debug.LogError(text);
+        private static void ConsoleLog(string text) => UnityEngine.Debug.Log(text);
     }
 }

@@ -13,7 +13,10 @@ And more tweaks to come!
 ## Commands
 *Install [TipeMod](https://thunderstore.io/c/content-warning/p/Tipe/TipeMod/) to use*
 ### Player
-- **`.SetOxygen <player_name> <amount_of_oxygen>`**: Change a player's oxygen level
+- **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Sets the remaining oxygen for the specified player
+- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean)]`** : Heals the specified player specified value
+### Players
+- **`.SetMaxHealth <Value (Single)>`**: Sets the max health for all players to the specified value
 
 ## For Developers: BetterConsole
 If you're making mods and want a better console experience, you can reference this mod's assembly. This lets you use the `Tweaks.Features.BetterConsole.ConsoleCommandAttribute`
@@ -22,6 +25,8 @@ This attribute is a better alternative to `Zorro.Core.CLI.ConsoleCommandAttribut
 - Automatic help command generation
 - Optional arguments
 - Command overloading
+
+There is also a class `Tweaks.Features.BetterConsole.CommandsClass` to specifically enable or disable commands in a specific class
 
 ## Testing Note
 I've tested this mod with two game instances (just me), but it *should* work fine with more players

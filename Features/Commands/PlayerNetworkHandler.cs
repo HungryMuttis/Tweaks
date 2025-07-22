@@ -21,14 +21,12 @@ namespace Tweaks.Features.Commands
             viewId = player.refs.view.ViewID;
             MyceliumNetwork.RegisterNetworkObject(this, Tweaks.MOD_ID, viewId);
         }
-
         void OnDestroy()
         {
             MyceliumNetwork.DeregisterNetworkObject(this, Tweaks.MOD_ID, viewId);
         }
 
-        [CustomRPC]
-        public void SetOxygenRPC(float newOxygenValue)
+        [CustomRPC] public void SetOxygenRPC(float newOxygenValue)
         {
             if (player != null && player.data != null)
             {
@@ -36,7 +34,6 @@ namespace Tweaks.Features.Commands
                 CommandsFeature.Debug($"Set player '{player.refs.view.Owner.NickName}' oxygen to {newOxygenValue}");
             }
         }
-
         public static void SendSetOxygenRequest(Player targetPlayer, float oxygen, bool percent = false)
         {
             if (targetPlayer == null)
@@ -59,6 +56,16 @@ namespace Tweaks.Features.Commands
             MyceliumNetwork.RPCMasked(Tweaks.MOD_ID, nameof(SetOxygenRPC), ReliableType.Reliable, viewId.Value, oxygenValue);
             CommandsFeature.Debug($"Sent RPC to '{playerName}' to set oxygen to {oxygenValue} using mask {viewId.Value}");
             Debug.Log($"Player '{playerName}' oxygen set to {oxygenValue}");
+        }
+
+        [CustomRPC] public void SetMaxOxygenRPC(float newMaxHealthValue)
+        {
+            Player.PlayerData.maxHealth = newMaxHealthValue;
+            CommandsFeature.Debug($"Set max health to '{newMaxHealthValue}' for everyone");
+        }
+        public static void SendSetMaxHealthRequest(float maxHealth)
+        {
+            MyceliumNetwork.RPC(Tweaks.MOD_ID, nameof(SetMaxOxygenRPC), ReliableType.Reliable, maxHealth);
         }
     }
 }
