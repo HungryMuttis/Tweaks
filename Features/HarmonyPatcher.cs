@@ -15,7 +15,7 @@ namespace Tweaks.Features
             (Type type, string methodName)? postfix = null,
             (Type type, string methodName)? transpiler = null)
         {
-            var originalMethod = FindMethod(originalType, originalMethodName, originalMethodParameters);
+            MethodInfo? originalMethod = FindMethod(originalType, originalMethodName, originalMethodParameters);
             if (originalMethod == null) return false;
 
             HarmonyMethod? prefixMethod = null;

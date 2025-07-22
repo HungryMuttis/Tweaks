@@ -22,8 +22,13 @@ namespace Tweaks.Features.BetterConsole
         public static bool GetDisplayTextWithMaxParameter_Prefix(CommandSuggestion __instance, int maxParameterIndex, bool color, ref string __result)
         {
             ConsoleCommands ??= (ConsoleCommand[])AccessTools.Field(typeof(ConsoleHandler), "m_consoleCommands").GetValue(null);
+            if (ConsoleCommands == null)
+                return true;
 
             ConsoleCommand cmd = ConsoleCommands.FirstOrDefault(c => c.DomainName == __instance.Domain && c.Command == __instance.Command);
+            if (cmd.MethodInfo == null)
+                return true;
+
             ConsoleCommandAttribute? customAttr = cmd.MethodInfo?.GetCustomAttribute<ConsoleCommandAttribute>();
 
             StringBuilder paramsText = new();

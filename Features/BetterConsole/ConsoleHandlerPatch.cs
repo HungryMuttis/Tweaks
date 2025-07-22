@@ -181,15 +181,15 @@ namespace Tweaks.Features.BetterConsole
 
             if (input.Contains(".") && !input.Contains(' '))
             {
-                string domain = input.Split('.')[0];
-                if (!ConsoleCommands.Any(c => c.DomainName.Equals(domain, StringComparison.OrdinalIgnoreCase)))
+                string[] cparts = input.Split('.');
+                if (!ConsoleCommands.Any(c => c.DomainName.Equals(cparts[0], StringComparison.OrdinalIgnoreCase)))
                 {
                     __result.Clear();
                     return;
                 }
-                if ("Help".StartsWith(input.Split('.')[1], StringComparison.OrdinalIgnoreCase))
+                if ("Help".StartsWith(cparts[1], StringComparison.OrdinalIgnoreCase))
                     if (!__result.Any(s => s is CommandSuggestion cs && cs.Command == "Help"))
-                        __result.Add(new CommandSuggestion(domain, "Help", []));
+                        __result.Add(new CommandSuggestion(cparts[0], "Help", []));
             }
 
             if (__result.Any(s => s is ParameterSuggestion) || !__result.Any(s => s is CommandSuggestion)) return;
