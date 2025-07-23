@@ -8,6 +8,7 @@ And more tweaks to come!
 - **No Oxygen Loss When Dead:** Change oxygen consumption on dead players
 - **Diving Bell Refill:** Refill oxygen when in diving bell
 - **Configurable Oxygen:** Adjust how much oxygen you have
+- **Return Items:** Returns any items that fall off the surface
 - **Console Improvements:** Enhancements for the in-game console
 
 ## Commands
