@@ -7,9 +7,9 @@ namespace Tweaks.Features.ReturnItems
 {
     internal class ItemInstancePatch
     {
-        private static readonly FieldInfo isHeldField = typeof(ItemInstance).GetField("isHeld", BindingFlags.NonPublic | BindingFlags.Instance) ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'isHeld'");
-        private static readonly FieldInfo rigField = typeof(ItemInstance).GetField("rig", BindingFlags.NonPublic | BindingFlags.Instance) ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'rig'");
-        private static readonly FieldInfo m_BoughtItemPositionField = typeof(ShopHandler).GetField("m_BoughtItemPosition", BindingFlags.NonPublic | BindingFlags.Instance) ?? throw new MemberNotFoundException($"{nameof(ShopHandler)} does not contain a field named 'm_BoughtItemPosition'");
+        private static readonly FieldInfo isHeldField = AccessTools.Field(typeof(ItemInstance), "isHeld") ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'isHeld'");
+        private static readonly FieldInfo rigField = AccessTools.Field(typeof(ItemInstance), "rig") ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'rig'");
+        private static readonly FieldInfo m_BoughtItemPositionField = AccessTools.Field(typeof(ShopHandler), "m_BoughtItemPosition") ?? throw new MemberNotFoundException($"{nameof(ShopHandler)} does not contain a field named 'm_BoughtItemPosition'");
         private static Transform? m_BoughtItemPosition;
 
         internal static void Init()
