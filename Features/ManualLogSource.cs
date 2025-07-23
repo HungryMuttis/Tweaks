@@ -8,7 +8,7 @@
         internal ManualLogSource(BepInEx.Logging.ManualLogSource logger, string prefix)
         {
             Logger = logger;
-            Prefix = prefix;
+            Prefix = prefix + ' ';
         }
 
         public void LogDebug(object data) => Logger.LogDebug(Prefix + data);
