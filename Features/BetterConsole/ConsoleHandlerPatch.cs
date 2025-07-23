@@ -6,13 +6,12 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using UnityEngine.Rendering;
 using Zorro.Core;
 using Zorro.Core.CLI;
 
 namespace Tweaks.Features.BetterConsole
 {
-    public class ConsoleHandlerPatch
+    public static class ConsoleHandlerPatch
     {
         private class AmbiguityContext(List<ConsoleCommand> overloads, List<string> arguments)
         {

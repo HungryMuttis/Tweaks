@@ -8,7 +8,7 @@ using Zorro.Core.CLI;
 
 namespace Tweaks.Features.BetterConsole
 {
-    public class ConsolePagePatch
+    public static class ConsolePagePatch
     {
         private static readonly MethodInfo FindSuggestions = AccessTools.Method(typeof(ConsolePage), "FindSuggestions");
         private static readonly FieldInfo ListViewField = AccessTools.Field(typeof(ConsolePage), "m_listView");

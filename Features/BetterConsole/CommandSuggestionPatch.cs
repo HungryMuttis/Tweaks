@@ -6,7 +6,7 @@ using Zorro.Core.CLI;
 
 namespace Tweaks.Features.BetterConsole
 {
-    public class CommandSuggestionPatch
+    public static class CommandSuggestionPatch
     {
         private static ConsoleCommand[]? ConsoleCommands;
         private static readonly FieldInfo SelectedParameterIndexField = AccessTools.Field(typeof(CommandSuggestion), "selectedParameterIndex");
@@ -42,7 +42,8 @@ namespace Tweaks.Features.BetterConsole
                 if (color)
                     paramsText.Append(selected ? "<color=#ffffff>" : "<color=#cccaca>");
 
-                paramsText.Append($" {(paramInfo.IsOptional ? '[' : '<')}{paramDisplay} ({paramInfo.ParameterType.Name}){(paramInfo.IsOptional ? ']' : '>')}");
+                string sg = $"{paramDisplay} ({paramInfo.ParameterType.Name}{(paramInfo.IsOptional ? $" = {paramInfo.DefaultValue}" : "")})";
+                paramsText.Append(paramInfo.IsOptional ? $" [{sg}]" : $" <{sg}>");
             }
 
             string fullCommand = __instance.FullCommand;
