@@ -1,4 +1,5 @@
 ﻿using MyceliumNetworking;
+using Tweaks.Features.Commands.Patches;
 using UnityEngine;
 
 namespace Tweaks.Features.Commands
@@ -26,46 +27,64 @@ namespace Tweaks.Features.Commands
             MyceliumNetwork.DeregisterNetworkObject(this, Tweaks.MOD_ID, viewId);
         }
 
-        [CustomRPC] public void SetOxygenRPC(float newOxygenValue)
+        [CustomRPC] public void SetOxygenRPC(float oxygen)
         {
-            if (player != null && player.data != null)
-            {
-                player.data.remainingOxygen = Mathf.Clamp(newOxygenValue, 0f, player.data.maxOxygen);
-                CommandsFeature.Debug($"Set player '{player.refs.view.Owner.NickName}' oxygen to {newOxygenValue}");
-            }
+            if (player == null || player.data == null) return;
+
+            player.data.remainingOxygen = Mathf.Clamp(oxygen, 0f, player.data.maxOxygen);
         }
         public static void SendSetOxygen(Player targetPlayer, float oxygen, bool percent = false)
         {
-            if (targetPlayer == null)
-            {
-                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] Target player cannot be null.");
-                return;
-            }
-
-            int? viewId = targetPlayer.refs.view?.ViewID;
-            string playerName = targetPlayer.refs.view?.Owner?.NickName ?? "Unknown Player";
-
-            if (viewId == null)
-            {
-                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] Player '{playerName}' has a null ViewID.");
-                return;
-            }
-
-            float oxygenValue = percent ? targetPlayer.data.maxOxygen * oxygen / 100f : oxygen;
-
-            MyceliumNetwork.RPCMasked(Tweaks.MOD_ID, nameof(SetOxygenRPC), ReliableType.Reliable, viewId.Value, oxygenValue);
-            CommandsFeature.Debug($"Sent RPC to '{playerName}' to set oxygen to {oxygenValue} using mask {viewId.Value}");
-            Debug.Log($"Player '{playerName}' oxygen set to {oxygenValue}");
+            Send(nameof(SetOxygenRPC), ReliableType.Reliable, targetPlayer,
+                percent ? targetPlayer.data.maxOxygen * oxygen / 100f : oxygen
+            );
         }
 
-        [CustomRPC] public void SetMaxHealthRPC(float newMaxHealthValue)
+        [CustomRPC] public void SetMaxHealthRPC(float maxHealth)
         {
-            Player.PlayerData.maxHealth = newMaxHealthValue;
-            CommandsFeature.Debug($"Set max health to '{newMaxHealthValue}' for everyone");
+            Player.PlayerData.maxHealth = maxHealth;
+            CommandsFeature.Debug($"Set max health to '{maxHealth}' for everyone");
         }
         public static void SendSetMaxHealth(float maxHealth)
         {
-            MyceliumNetwork.RPC(Tweaks.MOD_ID, nameof(SetMaxHealthRPC), ReliableType.Reliable, maxHealth);
+            Send(nameof(SetMaxHealthRPC), ReliableType.Reliable, null,
+                maxHealth
+            );
+        }
+
+        [CustomRPC] public void SetThrowStrengthMultiplier(float multiplier)
+        {
+            if (player == null) return;
+
+            if (Player.localPlayer != player) return;
+
+            PlayerPatch.ThrowStrengthMultiplier = multiplier;
+        }
+        public static void SendThrowStrengthMultiplier(Player targetPlayer, float multiplier)
+        {
+            Send(nameof(SetThrowStrengthMultiplier), ReliableType.Reliable, targetPlayer,
+                multiplier
+            );
+        }
+
+        // HELPER METHODS //
+        private static bool Send(string methodName, ReliableType reliable, Player? targetPlayer = null, params object[] parameters)
+        {
+            if (targetPlayer == null)
+            {
+                MyceliumNetwork.RPC(Tweaks.MOD_ID, methodName, reliable, parameters);
+                return true;
+            }
+
+            int? viewId = targetPlayer.refs.view?.ViewID;
+            if (viewId == null)
+            {
+                Debug.LogError($"[{nameof(PlayerNetworkHandler)}] Player '{targetPlayer.refs.view?.Owner?.NickName ?? "Unknown Player"}' has a null ViewID.");
+                return false;
+            }
+
+            MyceliumNetwork.RPCMasked(Tweaks.MOD_ID, methodName, reliable, viewId.Value, parameters);
+            return true;
         }
     }
 }

@@ -15,7 +15,8 @@ And more tweaks to come!
 *Install [TipeMod](https://thunderstore.io/c/content-warning/p/Tipe/TipeMod/) to use*
 ### Player
 - **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Sets the remaining oxygen for the specified player
-- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean)]`** : Heals the specified player specified value
+- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Heals the specified player specified value
+- **`.SetThrowStrengthMultiplier <Player (Player)> <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
 ### Players
 - **`.SetMaxHealth <Value (Single)>`**: Sets the max health for all players to the specified value
 

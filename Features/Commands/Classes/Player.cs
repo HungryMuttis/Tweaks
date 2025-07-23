@@ -13,5 +13,9 @@ namespace Tweaks.Features.Commands.Classes
         [ConsoleCommand("Heals the specified player specified value", "", "Amount to heal", "Is amount percent")]
         public static void Heal(global::Player Player, float Value, bool Percent = false)
             => Player.CallHeal(Percent ? global::Player.PlayerData.maxHealth * Value / 100 : Value);
+
+        [ConsoleCommand("Sets the throw strength multiplier for the specified player", "", "Times to multiply the throw strength")]
+        public static void SetThrowStrengthMultiplier(global::Player Player, float Multiplier)
+            => PlayerNetworkHandler.SendThrowStrengthMultiplier(Player, Multiplier);
     }
 }
