@@ -12,9 +12,9 @@ namespace Tweaks
     {
         public const uint MOD_ID = 2389670781;
 
-        public static Tweaks Instance { get; private set; } = null!;
-        internal new static BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
-        private FeatureManager Manager = null!;
+        public static Tweaks Instance { get; private set; } = default!;
+        internal new static BepInEx.Logging.ManualLogSource Logger { get; private set; } = default!;
+        private FeatureManager Manager = default!;
 
         private void Awake()
         {
