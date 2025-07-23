@@ -34,13 +34,8 @@ namespace Tweaks.Features.BetterConsole
                 prefix: (typeof(ConsoleHandlerPatch), nameof(ProcessCommand_Override))
             );
             HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), "<FindSuggestions>g__FindCommandSuggestions|13_1", [typeof(string)],
-                prefix: (typeof(ConsoleHandlerPatch), nameof(FindCommandSuggestions_Override))
-            );
-            Type DisplayClass13_0 = typeof(ConsoleHandler).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).FirstOrDefault(t => t.Name.Contains("c__DisplayClass13_0"));
-            HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), "<FindSuggestions>g__AddParameterSuggestions|13_0", [typeof(List<Suggestion>), DisplayClass13_0.MakeByRefType()],
-                prefix: (typeof(ConsoleHandlerPatch), nameof(AddParameterSuggestions_Override))
+                typeof(ConsoleHandler), nameof(ConsoleHandler.FindSuggestions),
+                prefix: (typeof(ConsoleHandlerPatch), nameof(FindSuggestions_Override))
             );
         }
 
@@ -168,21 +163,29 @@ namespace Tweaks.Features.BetterConsole
 
             return HandleCommandExecution(validCmds, providedArgs, commandName, ref __result);
         }
-        public static bool FindCommandSuggestions_Override(string input, ref List<Suggestion> __result)
+        public static bool FindSuggestions_Override(string input, ref List<Suggestion> __result)
         {
-            __result = [];
+            __result ??= [];
             if (string.IsNullOrEmpty(input)) return false;
+            FindCommandSuggestions(input, ref __result);
+            AddParameterSuggestions(input, ref __result);
+            return false;
+        }
+
+        // HELPER METHODS //
+        private static void FindCommandSuggestions(string input, ref List<Suggestion> __result)
+        {
             if (!input.Contains('.'))
             {
                 __result = [.. ConsoleCommands.Select(c => c.DomainName).Distinct().Where(d => d.Contains(input, StringComparison.OrdinalIgnoreCase)).Select(d => new DomainSuggestion(d))];
                 if ("Help".Contains(input, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is DomainSuggestion d && d.Domain.Equals("Help", StringComparison.OrdinalIgnoreCase)))
                     __result.Add(new DomainSuggestion("Help"));
-                return false;
+                return;
             }
 
             string[] split = StringUtility.SplitOnFirstOfChar(input, '.');
             HashSet<ConsoleCommand> possibleCommands = [.. ConsoleCommands.Where(c => c.DomainName == split[0])];
-            if (possibleCommands.Count == 0) return false;
+            if (possibleCommands.Count == 0) return;
 
             string cmd = split[1];
             bool finished = cmd.Contains(' ');
@@ -192,7 +195,7 @@ namespace Tweaks.Features.BetterConsole
                 __result = [.. possibleCommands.Where(c => c.Command.StartsWith(cmd)).Select(c => new CommandSuggestion(c.DomainName, c.Command, c.ParameterInfo))];
                 if ("Help".Contains(cmd, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is CommandSuggestion c && c.Command.Equals("Help", StringComparison.OrdinalIgnoreCase)))
                     __result.Add(new CommandSuggestion(split[0], "Help", []));
-                return false;
+                return;
             }
 
             string[] splitCommand = cmd.Split(' ');
@@ -230,20 +233,16 @@ namespace Tweaks.Features.BetterConsole
                 if (possible)
                     __result.Add(new CommandSuggestion(command.DomainName, command.Command, command.ParameterInfo));
             }
-            return false;
         }
-        public static bool AddParameterSuggestions_Override(List<Suggestion> suggestions, ref object __1)
+        private static void AddParameterSuggestions(string input, ref List<Suggestion> __result)
         {
-            FieldInfo? inputfield = __1.GetType().GetField("input");
-            string? input = (string?)inputfield.GetValue(__1);
-
-            if (input == null || !StringUtility.MakeSureNoDoublleChar(input, ' ')) return false;
+            if (!StringUtility.MakeSureNoDoublleChar(input, ' ')) return;
 
             string[] parts = input.Split(' ');
             string typeLine = string.Join(' ', parts.Take(parts.Length - 1)) + ' ';
             int index = parts.Length - 2;
-            if (index < 0) return false;
-            foreach (Suggestion suggestion in suggestions.ToList())
+            if (index < 0) return;
+            foreach (Suggestion suggestion in __result.ToList())
             {
                 if (suggestion is not CommandSuggestion cmdSuggestion || cmdSuggestion.ParameterInfos.Length <= index || !input.Contains(cmdSuggestion.FullCommand))
                     continue;
@@ -256,13 +255,10 @@ namespace Tweaks.Features.BetterConsole
                 List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(parts.Last());
                 string displayLine = cmdSuggestion.GetDisplayTextWithMaxParameter(index, false);
                 foreach (ParameterAutocomplete autocomplete in autocompletes)
-                    if (!suggestions.Any(s => s is ParameterSuggestion p && p.ParameterInput == autocomplete.Value))
-                        suggestions.Add(new ParameterSuggestion(displayLine, typeLine, autocomplete.Value));
+                    if (!__result.Any(s => s is ParameterSuggestion p && p.ParameterInput == autocomplete.Value))
+                        __result.Add(new ParameterSuggestion(displayLine, typeLine, autocomplete.Value));
             }
-            return false;
         }
-
-        // HELPER METHODS //
         private static bool HandleAmbiguity(string command, ref bool result)
         {
             if (!int.TryParse(command, out int selection) || selection <= 0) return false;
@@ -438,8 +434,8 @@ namespace Tweaks.Features.BetterConsole
                 try
                 {
                     methods.AddRange(assembly.GetTypes()
-                        .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
-                        .Where(method => method.GetCustomAttribute<ConsoleCommandAttribute>() != null)
+                        .SelectMany(AccessTools.GetDeclaredMethods)
+                        .Where(m => m.GetCustomAttribute<ConsoleCommandAttribute>() != null)
                     );
                 }
                 catch (ReflectionTypeLoadException ex)
