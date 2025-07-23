@@ -2,7 +2,7 @@
 {
     internal class PlayerPatch
     {
-        public static void Init()
+        internal static void Init()
         {
             On.Player.Start += Player_Start;
         }
