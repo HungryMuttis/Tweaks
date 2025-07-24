@@ -6,7 +6,7 @@ namespace Tweaks.Features.OxygenSettings
     internal class OxygenSettingsFeature : Feature<OxygenSettingsFeature>
     {
         public override string FeatureName => "OxygenSettings";
-        protected override string FeatureDescription => "Variuos settings related to oxygen";
+        public override string FeatureDescription => "Variuos settings related to oxygen";
 
         public ConfigEntry<float> MaxOxygen { get; private set; } = null!;
 

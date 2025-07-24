@@ -6,7 +6,7 @@ namespace Tweaks.Features.Defib
     internal class DefibFeature : Feature<DefibFeature>
     {
         public override string FeatureName => "Defib";
-        protected override string FeatureDescription => "Restores a configurable amount of oxygen upon revival.";
+        public override string FeatureDescription => "Restores a configurable amount of oxygen upon revival.";
 
         public ConfigEntry<Enums.Setting> Setting { get; private set; } = null!;
         public ConfigEntry<float> Amount { get; private set; } = null!;

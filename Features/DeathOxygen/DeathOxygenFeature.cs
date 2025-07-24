@@ -6,7 +6,7 @@ namespace Tweaks.Features.DeathOxygen
     internal class DeathOxygenFeature : Feature<DeathOxygenFeature>
     {
         public override string FeatureName => "DeathOxygen";
-        protected override string FeatureDescription => "Changes how much oxygen is consumed when the Player is dead.";
+        public override string FeatureDescription => "Changes how much oxygen is consumed when the Player is dead.";
 
         public ConfigEntry<float> Consumption { get; private set; } = null!;
 
