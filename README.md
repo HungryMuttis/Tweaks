@@ -30,8 +30,8 @@ This attribute is a better alternative to `Zorro.Core.CLI.ConsoleCommandAttribut
 
 Usage example:
 ```C#
-using Tweaks.Features.BetterConsole; // for Debug.Log
-using UnityEngine; // for all of the classes
+using Tweaks.Features.BetterConsole; // for all of the classes
+using UnityEngine; // for Debug.Log
 
 namespace PluginNamespace; // your plugin namespace
 
@@ -158,7 +158,7 @@ internal class YourNetworkHandler : NetworkComponent<YourNetworkHandler, Player>
     protected override BepInEx.Logging.ManualLogSource LogSource => YourPlugin.Logger; // change this to your real logger
 
     [CustomRPC]
-    // the custom RPC you define which is fired for every Player (in this case, it depends from TParent) when the SendOxygen calls the Send function
+    // the custom RPC you define which is fired for the specific Player (in this case, it depends from TParent) when the SendOxygen calls the Send function
     public void SetOxygen(float oxygen)
     {
         if (ParentComponent == null || ParentComponent.data == null) return;
