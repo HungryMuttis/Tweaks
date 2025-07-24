@@ -59,13 +59,13 @@ using Tweaks.Features; // for the HarmonyPatcher
 
 namespace PluginNamespace; // your plugin namespace
 
-public static class YourGameClassPatcher // name your pacther <ClassYouArePatching>Patcher to utilize all of the features the patcher provides
+public static class YourGameClassPatch // name your pacther <ClassYouArePatching>Patch to utilize all of the features the patcher provides
 {
     // if you are also using the FeatureManager, I strongly advise you to call the Init method from YourFeatureNameFeature.Initialize method
     internal static void Init() // the init method you call to apply the patches
     {
         YourPlugin.Patcher.SaveInfo(); // save the type of the current class and the type you are patching
-                                       // this only works if you named your class with a suffix 'Patcher'
+                                       // this only works if you named your class with a suffix 'Patch'
                                        // if the method doesn't work on release build, try to use any of its overloads
                                        // if the class of the method you are patching is not inside the Assembly-CSharp.dll make sure you specify the correct assembly (without .dll extension)
                                        // if the class of the method you are patching is not inside the global namespace, make sure you specify the namespace of it (can be with or without the dot at the end)
