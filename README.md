@@ -12,7 +12,6 @@ And more tweaks to come!
 - **Console Improvements:** Enhancements for the in-game console
 
 ## Commands
-*Install [TipeMod](https://thunderstore.io/c/content-warning/p/Tipe/TipeMod/) to use*
 ### Player
 - **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Sets the remaining oxygen for the specified player
 - **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Heals the specified player specified value
@@ -20,7 +19,8 @@ And more tweaks to come!
 ### Players
 - **`.SetMaxHealth <Value (Single)>`**: Sets the max health for all players to the specified value
 
-## For Developers: BetterConsole
+## For Developers
+### Better Console
 If you're making mods and want a better console experience, you can reference this mod's assembly. This lets you use the `Tweaks.Features.BetterConsole.ConsoleCommandAttribute`
 
 This attribute is a better alternative to `Zorro.Core.CLI.ConsoleCommandAttribute` because it handles:
@@ -29,6 +29,16 @@ This attribute is a better alternative to `Zorro.Core.CLI.ConsoleCommandAttribut
 - Command overloading
 
 There is also a class `Tweaks.Features.BetterConsole.CommandsClass` to specifically enable or disable commands in a specific class
+
+### Harmony Patcher
+If you are using harmony to patch your methods, you may also utilize the `Tweaks.Features.HarmonyPatcher` for easier patching of your methods. It removes all of the repeating and also has a way to automatically determine the type of the class you are trying to patch as well as the type of the patcher class
+
+### Feature Manager
+If you have a lot individual features in your mod, you can also try the `Tweaks.Features.FeatureManager`! It has a method `InitializeFeatures()` which must be called when the mod is loading.
+Features must inherit the `Tweaks.Features.Feature` class and be marked with `Tweaks.Features.FeatureAttribute` for the FeatureManager to find them and register.
+Feature manager automatically handles:
+- Enabling and disabling individual features
+- Has the option to mark a feature as required
 
 ## Testing Note
 I've tested this mod with two game instances (just me), but it *should* work fine with more players

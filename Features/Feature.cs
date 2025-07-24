@@ -2,7 +2,7 @@
 
 namespace Tweaks.Features
 {
-    internal interface IFeature
+    public interface IFeature
     {
         string FeatureName { get; }
         bool Enabled { get; }
@@ -11,7 +11,7 @@ namespace Tweaks.Features
         void CreateConfig(ConfigFile config);
         void Initialize();
     }
-    internal abstract class Feature<T> : IFeature where T : Feature<T>
+    public abstract class Feature<T> : IFeature where T : Feature<T>
     {
         public static T Instance { get; private set; } = default!;
 
@@ -24,7 +24,7 @@ namespace Tweaks.Features
         public abstract string FeatureName { get; }
 
 
-        protected abstract string FeatureDescription { get; }
+        public abstract string FeatureDescription { get; }
         public ManualLogSource Logger => _logger ??= new ManualLogSource(Tweaks.Logger, $"[{FeatureName}]");
 
         public Feature()
@@ -32,8 +32,6 @@ namespace Tweaks.Features
             Instance = (T)this;
         }
 
-
-        public abstract void Initialize();
         public virtual void CreateConfig(ConfigFile config)
         {
             if (!Required)
@@ -44,6 +42,8 @@ namespace Tweaks.Features
                     $"Enables feature: {FeatureDescription}"
                 );
         }
+        
+        public abstract void Initialize();
 
         public static void Debug(object data)
             => Instance.Logger.LogDebug(data);

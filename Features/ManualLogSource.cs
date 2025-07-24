@@ -5,10 +5,10 @@
         private BepInEx.Logging.ManualLogSource Logger { get; }
         public string Prefix { get; }
 
-        internal ManualLogSource(BepInEx.Logging.ManualLogSource logger, string prefix)
+        internal ManualLogSource(BepInEx.Logging.ManualLogSource logger, string name)
         {
             Logger = logger;
-            Prefix = prefix + ' ';
+            Prefix = $"[{name}] ";
         }
 
         public void LogDebug(object data) => Logger.LogDebug(Prefix + data);
