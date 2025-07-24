@@ -2,7 +2,7 @@
 
 namespace Tweaks.Features.Defib
 {
-    [ModFeature]
+    [Feature]
     internal class DefibFeature : Feature<DefibFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
@@ -13,10 +13,9 @@ namespace Tweaks.Features.Defib
         public ConfigEntry<float> Amount { get; private set; } = null!;
         public ConfigEntry<Enums.Type> Type { get; private set; } = null!;
 
-        public override void CreateConfig(ConfigFile config)
+        public override void CreateConfig(ConfigSection section)
         {
-            Setting = config.Bind(
-                FeatureName,
+            Setting = section.Bind(
                 nameof(Setting),
                 Enums.Setting.cset,
                 """
@@ -26,15 +25,13 @@ namespace Tweaks.Features.Defib
                 """
             );
 
-            Amount = config.Bind(
-                FeatureName,
+            Amount = section.Bind(
                 nameof(Amount),
                 180f,
                 "Amount of oxygen"
             );
 
-            Type = config.Bind(
-                FeatureName,
+            Type = section.Bind(
                 nameof(Type),
                 Enums.Type.seconds,
                 """

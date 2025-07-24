@@ -1,6 +1,6 @@
 ﻿namespace Tweaks.Features.ReturnItems
 {
-    [ModFeature]
+    [Feature]
     internal class ReturnItemsFeature : Feature<ReturnItemsFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;

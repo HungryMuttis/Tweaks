@@ -2,7 +2,7 @@
 
 namespace Tweaks.Features.OxygenSettings
 {
-    [ModFeature]
+    [Feature]
     internal class OxygenSettingsFeature : Feature<OxygenSettingsFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
@@ -11,10 +11,9 @@ namespace Tweaks.Features.OxygenSettings
 
         public ConfigEntry<float> MaxOxygen { get; private set; } = null!;
 
-        public override void CreateConfig(ConfigFile config)
+        public override void CreateConfig(ConfigSection section)
         {
-            MaxOxygen = config.Bind(
-                FeatureName,
+            MaxOxygen = section.Bind(
                 nameof(MaxOxygen),
                 500f,
                 """

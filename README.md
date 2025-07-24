@@ -95,7 +95,7 @@ public class YourPlugin : BepInPlugin // this is only an example, not a full cla
 
 ### Feature Manager
 If you have a lot individual features in your mod, you can also try the `Tweaks.Features.FeatureManager`! It has a method `InitializeFeatures()` which must be called when the mod is loading.
-Features must inherit the `Tweaks.Features.Feature` class and be marked with `Tweaks.Features.ModFeatureAttribute` for the FeatureManager to find them and register.
+Features must inherit the `Tweaks.Features.Feature` class and be marked with `Tweaks.Features.FeatureAttribute` for the FeatureManager to find them and register.
 Feature manager automatically handles:
 - Enabling and disabling individual features
 - Has the option to mark a feature as required
@@ -108,7 +108,7 @@ using Tweaks.Features; // for all of the necessary classes
 
 namespace PluginNamespace; // your plugin namespace
 
-[ModFeature] // add the ModFeatureAttribute
+[Feature] // add the FeatureAttribute
 internal class YourFeatureNameFeature : Feature<YourFeatureNameFeature> // inherit the feature class
 {
     public override BepInEx.Logging.ManualLogSource LogSource => YourPlugin.Logger; // use your logger

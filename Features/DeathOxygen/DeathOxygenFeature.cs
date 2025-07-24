@@ -2,7 +2,7 @@
 
 namespace Tweaks.Features.DeathOxygen
 {
-    [ModFeature]
+    [Feature]
     internal class DeathOxygenFeature : Feature<DeathOxygenFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
@@ -11,10 +11,9 @@ namespace Tweaks.Features.DeathOxygen
 
         public ConfigEntry<float> Consumption { get; private set; } = null!;
 
-        public override void CreateConfig(ConfigFile config)
+        public override void CreateConfig(ConfigSection section)
         {
-            Consumption = config.Bind(
-                FeatureName,
+            Consumption = section.Bind(
                 nameof(Consumption),
                 0f,
                 """

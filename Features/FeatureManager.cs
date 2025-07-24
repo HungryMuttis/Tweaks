@@ -26,7 +26,7 @@ namespace Tweaks.Features
             Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t =>
                 {
-                    if (!t.IsClass || t.IsAbstract || t.GetCustomAttribute<ModFeatureAttribute>() == null) return false;
+                    if (!t.IsClass || t.IsAbstract || t.GetCustomAttribute<FeatureAttribute>() == null) return false;
                     Type? current = t.BaseType;
                     while (current != null)
                     {
@@ -48,8 +48,9 @@ namespace Tweaks.Features
 
         public void InitializeFeatures() => Features.ForEach(f =>
         {
-            f.CreateRequiredConfig(Config);
-            f.CreateConfig(Config);
+            ConfigSection Section = new(Config, f.FeatureName);
+            f.CreateRequiredConfig(Section);
+            f.CreateConfig(Section);
             if (f.Enabled)
             {
                 if (f.Required)

@@ -8,8 +8,8 @@ namespace Tweaks.Features
         bool Enabled { get; }
         bool Required { get; }
 
-        void CreateRequiredConfig(ConfigFile config);
-        void CreateConfig(ConfigFile config);
+        void CreateRequiredConfig(ConfigSection section);
+        void CreateConfig(ConfigSection section);
         void Initialize();
     }
     public abstract class Feature<T> : IFeature where T : Feature<T>
@@ -32,17 +32,16 @@ namespace Tweaks.Features
             Instance = (T)this;
         }
 
-        public void CreateRequiredConfig(ConfigFile config)
+        public void CreateRequiredConfig(ConfigSection section)
         {
             if (!Required)
-                _enabled = config.Bind(
-                    FeatureName,
+                _enabled = section.Bind(
                     nameof(Enabled),
                     true,
                     $"Enables feature: {FeatureDescription}"
                 );
         }
-        public virtual void CreateConfig(ConfigFile config) { }
+        public virtual void CreateConfig(ConfigSection section) { }
         public abstract void Initialize();
 
         public static void Debug(object data) => Instance.Logger.LogDebug(data);

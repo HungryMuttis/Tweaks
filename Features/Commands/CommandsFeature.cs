@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Tweaks.Features.Commands
 {
-    [ModFeature]
+    [Feature]
     internal class CommandsFeature : Feature<CommandsFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;

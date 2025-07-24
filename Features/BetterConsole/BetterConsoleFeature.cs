@@ -1,6 +1,6 @@
 ﻿namespace Tweaks.Features.BetterConsole
 {
-    [ModFeature(true)]
+    [Feature(true)]
     internal class BetterConsoleFeature : Feature<BetterConsoleFeature>
     {
         public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
