@@ -174,6 +174,15 @@ internal class YourNetworkHandler : NetworkComponent<YourNetworkHandler, Player>
         );
     }
 }
+
+public static PlayerPatch // this is just an example class
+{
+    public static void Start_Prefix(Player __instance) // we also need to patch the players start method, to add our network handler to them
+    {
+        if (__instance.gameObject.GetComponent<PlayerNetworkHandler>() == null)
+            __instance.gameObject.AddComponent<PlayerNetworkHandler>();
+    }
+}
 ```
 
 **SingletonNetwokHandler\<TParent>** singleton abstract class for simpler networking
