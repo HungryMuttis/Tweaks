@@ -35,7 +35,7 @@ If you are using harmony to patch your methods, you may also utilize the `Tweaks
 
 ### Feature Manager
 If you have a lot individual features in your mod, you can also try the `Tweaks.Features.FeatureManager`! It has a method `InitializeFeatures()` which must be called when the mod is loading.
-Features must inherit the `Tweaks.Features.Feature` class and be marked with `Tweaks.Features.FeatureAttribute` for the FeatureManager to find them and register.
+Features must inherit the `Tweaks.Features.Feature` class and be marked with `Tweaks.Features.ModFeatureAttribute` for the FeatureManager to find them and register.
 Feature manager automatically handles:
 - Enabling and disabling individual features
 - Has the option to mark a feature as required
