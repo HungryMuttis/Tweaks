@@ -5,6 +5,7 @@ namespace Tweaks.Features.DivingBellOxygenRefill
     [ModFeature]
     internal class DivingBellOxygenRefillFeature : Feature<DivingBellOxygenRefillFeature>
     {
+        public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
         public override string FeatureName => "DivingBellOxygenRefilling";
         public override string FeatureDescription => "Refills oxygen when player is in diving bell";
 
@@ -12,8 +13,6 @@ namespace Tweaks.Features.DivingBellOxygenRefill
 
         public override void CreateConfig(ConfigFile config)
         {
-            base.CreateConfig(config);
-
             RefillRate = config.Bind(
                 FeatureName,
                 nameof(RefillRate),

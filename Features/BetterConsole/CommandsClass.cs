@@ -1,7 +1,7 @@
 ﻿namespace Tweaks.Features.BetterConsole
 {
-    public abstract class CommandsClass
+    public interface ICommandsClass
     {
-        public static bool Enabled { get; }
+        static bool Enabled { get; }
     }
 }

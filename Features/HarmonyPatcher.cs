@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Tweaks.Features
 {
-    internal class HarmonyPatcher(string id, BepInEx.Logging.ManualLogSource logger)
+    public class HarmonyPatcher(string id, BepInEx.Logging.ManualLogSource logger)
     {
         private readonly Harmony harmony = new(id);
         private readonly ManualLogSource Logger = new(logger, nameof(HarmonyPatcher));

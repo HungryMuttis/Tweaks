@@ -3,6 +3,7 @@
     [ModFeature(true)]
     internal class BetterConsoleFeature : Feature<BetterConsoleFeature>
     {
+        public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
         public override bool Required => true;
         public override string FeatureName => "BetterConsole";
         public override string FeatureDescription => "Enables the console and makes it better (for the devs mostly)";

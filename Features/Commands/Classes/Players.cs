@@ -2,12 +2,11 @@
 
 namespace Tweaks.Features.Commands.Classes
 {
-    public class Players : CommandsClass
+    public class Players : ICommandsClass
     {
-        public static new bool Enabled => CommandsFeature.Instance.Enabled;
+        public static bool Enabled => CommandsFeature.Instance.Enabled;
 
-        [ConsoleCommand("Sets the max health for all players to the specified value", "Max health")]
-        public static void SetMaxHealth(float Value)
-            => PlayerNetworkHandler.SendSetMaxHealth(Value);
+        [ConsoleCommand("Sets the max health for all players to the specified value", "Max health", "Heal the player to max health")]
+        public static void SetMaxHealth(float Value, bool AddHealth = false) => PlayersNetworkHandler.SendMaxHealth(Value, AddHealth);
     }
 }

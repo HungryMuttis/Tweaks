@@ -8,6 +8,7 @@ namespace Tweaks.Features
         bool Enabled { get; }
         bool Required { get; }
 
+        void CreateRequiredConfig(ConfigFile config);
         void CreateConfig(ConfigFile config);
         void Initialize();
     }
@@ -19,20 +20,19 @@ namespace Tweaks.Features
         private ConfigEntry<bool>? _enabled;
 
         public bool Enabled => _enabled?.Value ?? Required;
+        public ManualLogSource Logger => _logger ??= new ManualLogSource(LogSource, FeatureName);
 
+        public abstract BepInEx.Logging.ManualLogSource LogSource { get; }
         public virtual bool Required { get; }
         public abstract string FeatureName { get; }
-
-
         public abstract string FeatureDescription { get; }
-        public ManualLogSource Logger => _logger ??= new ManualLogSource(Tweaks.Logger, $"[{FeatureName}]");
 
         public Feature()
         {
             Instance = (T)this;
         }
 
-        public virtual void CreateConfig(ConfigFile config)
+        public void CreateRequiredConfig(ConfigFile config)
         {
             if (!Required)
                 _enabled = config.Bind(
@@ -42,20 +42,14 @@ namespace Tweaks.Features
                     $"Enables feature: {FeatureDescription}"
                 );
         }
-        
+        public virtual void CreateConfig(ConfigFile config) { }
         public abstract void Initialize();
 
-        public static void Debug(object data)
-            => Instance.Logger.LogDebug(data);
-        public static void Message(object data)
-            => Instance.Logger.LogMessage(data);
-        public static void Info(object data)
-            => Instance.Logger.LogInfo(data);
-        public static void Warning(object data)
-            => Instance.Logger.LogWarning(data);
-        public static void Error(object data)
-            => Instance.Logger.LogError(data);
-        public static void Fatal(object data)
-            => Instance.Logger.LogFatal(data);
+        public static void Debug(object data) => Instance.Logger.LogDebug(data);
+        public static void Message(object data) => Instance.Logger.LogMessage(data);
+        public static void Info(object data) => Instance.Logger.LogInfo(data);
+        public static void Warning(object data) => Instance.Logger.LogWarning(data);
+        public static void Error(object data) => Instance.Logger.LogError(data);
+        public static void Fatal(object data) => Instance.Logger.LogFatal(data);
     }
 }

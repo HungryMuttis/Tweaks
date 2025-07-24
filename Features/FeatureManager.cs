@@ -46,22 +46,20 @@ namespace Tweaks.Features
                 });
         }
 
-        public void InitializeFeatures()
+        public void InitializeFeatures() => Features.ForEach(f =>
         {
-            Features.ForEach(f =>
+            f.CreateRequiredConfig(Config);
+            f.CreateConfig(Config);
+            if (f.Enabled)
             {
-                f.CreateConfig(Config);
-                if (f.Enabled)
-                {
-                    if (f.Required)
-                        Logger.LogInfo($"Feature '{f.FeatureName}' is required. Initializing...");
-                    else
-                        Logger.LogInfo($"Feature '{f.FeatureName}' is enabled. Initializing...");
-                    f.Initialize();
-                }
+                if (f.Required)
+                    Logger.LogInfo($"Feature '{f.FeatureName}' is required. Initializing...");
                 else
-                    Logger.LogInfo($"Feature '{f.FeatureName}' is disabled.");
-            });
-        }
+                    Logger.LogInfo($"Feature '{f.FeatureName}' is enabled. Initializing...");
+                f.Initialize();
+            }
+            else
+                Logger.LogInfo($"Feature '{f.FeatureName}' is disabled.");
+        });
     }
 }

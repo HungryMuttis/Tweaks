@@ -25,21 +25,22 @@ namespace Tweaks.Features.BetterConsole
 
         internal static void Init()
         {
-            HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), nameof(ConsoleHandler.Initialize),
-                postfix: (typeof(ConsoleHandlerPatch), nameof(Initialize_Postfix))
+            Tweaks.Patcher.SaveInfo(assembly: "Zorro.Core.Runtime", @namespace: "Zorro.Core.CLI");
+            Tweaks.Patcher.Patch(
+                nameof(ConsoleHandler.Initialize),
+                postfix: nameof(Initialize_Postfix)
             );
-            HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), nameof(ConsoleHandler.ProcessCommand),
-                prefix: (typeof(ConsoleHandlerPatch), nameof(ProcessCommand_Override))
+            Tweaks.Patcher.Patch(
+                nameof(ConsoleHandler.ProcessCommand),
+                prefix: nameof(ProcessCommand_Override)
             );
-            HarmonyPatcher.Patch(
-                typeof(ConsoleHandler), nameof(ConsoleHandler.FindSuggestions),
-                prefix: (typeof(ConsoleHandlerPatch), nameof(FindSuggestions_Override))
+            Tweaks.Patcher.Patch(
+                nameof(ConsoleHandler.FindSuggestions),
+                prefix: nameof(FindSuggestions_Override)
             );
         }
 
-        // HOOKS //
+        // PATCHES //
         public static void Initialize_Postfix()
         {
             FieldInfo commands = AccessTools.Field(typeof(ConsoleHandler), "m_consoleCommands");
@@ -63,7 +64,7 @@ namespace Tweaks.Features.BetterConsole
                 if (declaringType == null) continue;
 
                 bool add = false;
-                if (!typeof(CommandsClass).IsAssignableFrom(declaringType))
+                if (!typeof(ICommandsClass).IsAssignableFrom(declaringType))
                     add = true;
                 else
                 {

@@ -5,6 +5,7 @@ namespace Tweaks.Features.DeathOxygen
     [ModFeature]
     internal class DeathOxygenFeature : Feature<DeathOxygenFeature>
     {
+        public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
         public override string FeatureName => "DeathOxygen";
         public override string FeatureDescription => "Changes how much oxygen is consumed when the Player is dead.";
 
@@ -12,8 +13,6 @@ namespace Tweaks.Features.DeathOxygen
 
         public override void CreateConfig(ConfigFile config)
         {
-            base.CreateConfig(config);
-
             Consumption = config.Bind(
                 FeatureName,
                 nameof(Consumption),

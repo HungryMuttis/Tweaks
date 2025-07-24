@@ -13,12 +13,14 @@ namespace Tweaks.Features.BetterConsole
 
         internal static void Init()
         {
-            HarmonyPatcher.Patch(
-                typeof(CommandSuggestion), nameof(CommandSuggestion.GetDisplayTextWithMaxParameter),
-                prefix: (typeof(CommandSuggestionPatch), nameof(GetDisplayTextWithMaxParameter_Prefix))
+            Tweaks.Patcher.SaveInfo(assembly: "Zorro.Core.Runtime", @namespace: "Zorro.Core.CLI");
+            Tweaks.Patcher.Patch(
+                nameof(CommandSuggestion.GetDisplayTextWithMaxParameter),
+                prefix: nameof(GetDisplayTextWithMaxParameter_Prefix)
             );
         }
 
+        // PATCHES //
         public static bool GetDisplayTextWithMaxParameter_Prefix(CommandSuggestion __instance, int maxParameterIndex, bool color, ref string __result)
         {
             ConsoleCommands ??= (ConsoleCommand[])AccessTools.Field(typeof(ConsoleHandler), "m_consoleCommands").GetValue(null);

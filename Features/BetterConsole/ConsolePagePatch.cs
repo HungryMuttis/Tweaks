@@ -16,21 +16,22 @@ namespace Tweaks.Features.BetterConsole
 
         internal static void Init()
         {
-            HarmonyPatcher.Patch(
-                typeof(ConsolePage), nameof(ConsolePage.Update),
-                postfix: (typeof(ConsolePagePatch), nameof(Update_Postfix))
+            Tweaks.Patcher.SaveInfo(assembly: "Zorro.Core.Runtime", @namespace: "Zorro.Core.CLI");
+            Tweaks.Patcher.Patch(
+                nameof(ConsolePage.Update),
+                postfix: nameof(Update_Postfix)
             );
-            HarmonyPatcher.Patch(
-                typeof(ConsolePage), nameof(ConsolePage.LogRecieved),
-                postfix: (typeof(ConsolePagePatch), nameof(Scrollfix_Postfix))
+            Tweaks.Patcher.Patch(
+                nameof(ConsolePage.LogRecieved),
+                postfix: nameof(Scrollfix_Postfix)
             );
-            HarmonyPatcher.Patch(
-                typeof(ConsolePage), "AttemptParseCommand",
-                postfix: (typeof(ConsolePagePatch), nameof(Scrollfix_Postfix))
+            Tweaks.Patcher.Patch(
+                "AttemptParseCommand",
+                postfix: nameof(Scrollfix_Postfix)
             );
         }
 
-        // HOOKS //
+        // PATCHES //
         public static void Update_Postfix(ConsolePage __instance, ref Optionable<byte> ___m_selectedSuggestion, string ___m_currentInput)
         {
             if (Input.GetKeyDown(KeyCode.Tab))

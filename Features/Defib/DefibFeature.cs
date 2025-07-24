@@ -5,6 +5,7 @@ namespace Tweaks.Features.Defib
     [ModFeature]
     internal class DefibFeature : Feature<DefibFeature>
     {
+        public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
         public override string FeatureName => "Defib";
         public override string FeatureDescription => "Restores a configurable amount of oxygen upon revival.";
 
@@ -14,8 +15,6 @@ namespace Tweaks.Features.Defib
 
         public override void CreateConfig(ConfigFile config)
         {
-            base.CreateConfig(config);
-
             Setting = config.Bind(
                 FeatureName,
                 nameof(Setting),

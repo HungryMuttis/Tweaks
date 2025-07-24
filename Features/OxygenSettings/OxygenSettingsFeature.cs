@@ -5,6 +5,7 @@ namespace Tweaks.Features.OxygenSettings
     [ModFeature]
     internal class OxygenSettingsFeature : Feature<OxygenSettingsFeature>
     {
+        public override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
         public override string FeatureName => "OxygenSettings";
         public override string FeatureDescription => "Variuos settings related to oxygen";
 
@@ -12,8 +13,6 @@ namespace Tweaks.Features.OxygenSettings
 
         public override void CreateConfig(ConfigFile config)
         {
-            base.CreateConfig(config);
-
             MaxOxygen = config.Bind(
                 FeatureName,
                 nameof(MaxOxygen),
