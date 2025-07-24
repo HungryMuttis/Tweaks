@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Tweaks.Features.ReturnItems
 {
-    internal class ItemInstancePatch
+    public static class ItemInstancePatch
     {
         private static readonly FieldInfo isHeldField = AccessTools.Field(typeof(ItemInstance), "isHeld") ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'isHeld'");
         private static readonly FieldInfo rigField = AccessTools.Field(typeof(ItemInstance), "rig") ?? throw new MemberNotFoundException($"{nameof(ItemInstance)} does not contain a field named 'rig'");
@@ -14,22 +14,21 @@ namespace Tweaks.Features.ReturnItems
 
         internal static void Init()
         {
-            On.ItemInstance.Update += ItemInstance_Update;
+            Tweaks.Patcher.SaveInfo();
+            Tweaks.Patcher.Patch(
+                nameof(ItemInstance.Update),
+                postfix: nameof(Update_Postfix)
+            );
         }
 
-        // HOOKS //
-        private static void ItemInstance_Update(On.ItemInstance.orig_Update orig, ItemInstance self)
+        // PATCHES //
+        public static void Update_Postfix(ItemInstance __instance)
         {
-            orig(self);
-
             if (!PhotonNetwork.IsMasterClient) return;
-            Rigidbody rig = (Rigidbody)rigField.GetValue(self);
-            if ((bool)isHeldField.GetValue(self) || rig == null || self.m_guid.IsNone) return;
+            Rigidbody rig = (Rigidbody)rigField.GetValue(__instance);
+            if ((bool)isHeldField.GetValue(__instance) || rig == null || __instance.m_guid.IsNone) return;
 
-            bool revVel = false;
-            if (rig.position.y >= -150f)
-                if (rig.position.y <= 100) return;
-                else revVel = true;
+            if (rig.position.y >= -150f && rig.position.y <= 100) return;
 
             if (!PhotonGameLobbyHandler.IsSurface || Hospital.instance == null) return;
 
@@ -38,8 +37,8 @@ namespace Tweaks.Features.ReturnItems
 
             Vector3 pos = m_BoughtItemPosition.position;
             pos.y = 100;
+            if (rig.position.y > 100f) rig.velocity *= -1;
             rig.position = pos;
-            if (revVel) rig.velocity *= -1;
         }
     }
 }

@@ -1,17 +1,20 @@
 ﻿namespace Tweaks.Features.OxygenSettings
 {
-    internal class PlayerPatch
+    public static class PlayerPatch
     {
         internal static void Init()
         {
-            On.Player.Start += Player_Start;
+            Tweaks.Patcher.SaveInfo();
+            Tweaks.Patcher.Patch(
+                "Start",
+                prefix: nameof(Start_Prefix)
+            );
         }
 
-        // HOOKS //
-        private static System.Collections.IEnumerator Player_Start(On.Player.orig_Start orig, Player self)
+        // PATCHES //
+        public static void Start_Prefix(Player __instance)
         {
-            self.data.remainingOxygen = OxygenSettingsFeature.Instance.MaxOxygen.Value;
-            return orig(self);
+            __instance.data.remainingOxygen = OxygenSettingsFeature.Instance.MaxOxygen.Value;
         }
     }
 }

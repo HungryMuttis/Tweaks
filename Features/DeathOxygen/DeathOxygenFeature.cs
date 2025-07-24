@@ -25,7 +25,7 @@ namespace Tweaks.Features.DeathOxygen
 
         public override void Initialize()
         {
-            PlayerPatch.Init();
+            PlayerDataPatch.Init();
         }
     }
 }

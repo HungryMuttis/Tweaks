@@ -24,7 +24,7 @@ namespace Tweaks.Features.DivingBellOxygenRefill
 
         public override void Initialize()
         {
-            PlayerPatch.Init();
+            PlayerDataPatch.Init();
         }
     }
 }

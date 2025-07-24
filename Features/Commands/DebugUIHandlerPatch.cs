@@ -20,7 +20,7 @@ namespace Tweaks.Features.Commands
         // PATCHES //
         public static void Update_Postfix(DebugUIHandler __instance)
         {
-            if (!Input.GetKeyDown(KeyCode.BackQuote)) return;
+            if (!Input.GetKeyDown(CommandsFeature.Instance.OpenConsoleKey.Value)) return;
 
             if (__instance.IsOpen)
             {

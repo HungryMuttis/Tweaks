@@ -1,27 +1,36 @@
-﻿using System.Collections;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using Tweaks.Features;
 using UnityEngine;
 
 namespace Tweaks.Features.Commands.Patches
 {
-    internal class PlayerPatch
+    public static class PlayerPatch
     {
         public static float ThrowStrengthMultiplier = 1f;
 
         internal static void Init()
         {
-            On.Player.Start += Player_Start;
-            On.Player.RequestCreatePickup_byte_ItemInstanceData_Vector3_Quaternion_Vector3_Vector3 += Player_RequestCreatePickup_byte_ItemInstanceData_Vector3_Quaternion_Vector3_Vector3;
+            Tweaks.Patcher.SaveInfo();
+            Tweaks.Patcher.Patch(
+                "Start",
+                postfix: nameof(Start_Postfix)
+            );
+            Tweaks.Patcher.Patch(
+                nameof(Player.RequestCreatePickup), [typeof(byte), typeof(ItemInstanceData), typeof(Vector3), typeof(Quaternion), typeof(Vector3), typeof(Vector3)],
+                prefix: nameof(RequestCreatePickup_Prefix)
+            );
         }
 
-        // HOOKS //
-        private static IEnumerator Player_Start(On.Player.orig_Start orig, Player self)
+        // PATCHES //
+        public static void Start_Postfix(Player __instance)
         {
-            yield return orig(self);
-
-            if (self.gameObject.GetComponent<PlayerNetworkHandler>() == null)
-                self.gameObject.AddComponent<PlayerNetworkHandler>();
+            if (__instance.gameObject.GetComponent<PlayerNetworkHandler>() == null)
+                __instance.gameObject.AddComponent<PlayerNetworkHandler>();
         }
-        private static void Player_RequestCreatePickup_byte_ItemInstanceData_Vector3_Quaternion_Vector3_Vector3(On.Player.orig_RequestCreatePickup_byte_ItemInstanceData_Vector3_Quaternion_Vector3_Vector3 orig, Player self, byte itemID, ItemInstanceData data, Vector3 pos, Quaternion rot, Vector3 vel, Vector3 angVel)
-            => orig(self, itemID, data, pos, rot, vel * ThrowStrengthMultiplier, angVel);
+        public static void RequestCreatePickup_Prefix(ref Vector3 vel)
+        {
+            vel *= ThrowStrengthMultiplier;
+        }
     }
 }

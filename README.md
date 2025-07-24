@@ -115,17 +115,25 @@ internal class YourFeatureNameFeature : Feature<YourFeatureNameFeature> // inher
     public override bool Required => false; // (optional) if set to true, disallows the user to turn off the feature. The initialize method for it is always called. Default: false (user can disable your feature)
     public override string FeatureName => "YourFeatureName"; // name your feature. It can be with spaces or without
     public override string FeatureDescription => "Explain what your feature does";
+    
+    public ConfigEntry<float> SomeSetting { get; private set; } = null!; // example setting
+
+    public override void CreateConfig(ConfigSection section)
+    {
+        // this function is always called. No matter if this feature is enabled or not
+        // you can register your feature config here
+        SomeSetting = section.Bind(
+            nameof(SomeSetting), // the name of the setting
+            20f, // the default value of the setting
+            """
+            The description of this setting
+            """); // description
+    }
 
     public override void Initialize()
     {
         // this function is only called if the feature is enabled
         // some code that initializes your feature. Put the SingletonNetworkComponent GameObject creating here
-    }
-
-    public override void CreateConfig(ConfigFile config)
-    {
-        // this function is always called. No matter if this feature is enabled or not
-        // you can register your feature config here
     }
 }
 

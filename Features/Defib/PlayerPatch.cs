@@ -3,18 +3,21 @@ using UnityEngine;
 
 namespace Tweaks.Features.Defib
 {
-    internal class PlayerPatch
+    public static class PlayerPatch
     {
         internal static void Init()
         {
-            On.Player.RPCA_PlayerRevive += Player_RPCA_PlayerRevive;
+            Tweaks.Patcher.SaveInfo();
+            Tweaks.Patcher.Patch(
+                "RPCA_PlayerRevive",
+                prefix: nameof(RPCA_PlayerRevive_Prefix)
+            );
         }
 
-        // HOOKS //
-        private static void Player_RPCA_PlayerRevive(On.Player.orig_RPCA_PlayerRevive orig, Player self)
+        // PATCHES //
+        public static void RPCA_PlayerRevive_Prefix(Player __instance)
         {
-            self.data.remainingOxygen = CalculateOxygen(self.data.remainingOxygen, self.data.maxOxygen);
-            orig(self);
+            __instance.data.remainingOxygen = CalculateOxygen(__instance.data.remainingOxygen, __instance.data.maxOxygen);
         }
 
         // HELPER METHODS //
