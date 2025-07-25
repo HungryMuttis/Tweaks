@@ -52,7 +52,7 @@ public class ExampleCommandsClass : ICommandsClass // the class can be named how
 ```
 
 ### Harmony Patcher
-If you are using harmony to patch your methods, you may also utilize the `Tweaks.Features.HarmonyPatcher` for easier patching of your methods. It removes all of the repeating and also has a way to automatically determine the type of the class you are trying to patch as well as the type of the patcher class
+If you are using harmony to patch your methods, you may also utilize the `Tweaks.Features.HarmonyPatcher` for easier patching of your methods. It removes all of the repeating and also has a way to automatically determine the type of the class you are trying to patch as well as the type of the patcher class  
 Usage example:
 ```C#
 using Tweaks.Features; // for the HarmonyPatcher
@@ -149,7 +149,7 @@ public class YourPlugin : BepInPlugin // this is only an example, not a full cla
 ```
 
 ### NetworkComponents
-**NetworkComponent<THandler, TParent>** transient abstract class for simpler networking.
+**NetworkComponent<THandler, TParent>** transient abstract class for simpler networking  
 Usage example:
 ```C#
 using MyceliumNetworking;  // mycelium networking for CustomRPCAttribute
@@ -193,7 +193,7 @@ public static PlayerPatch // this is just an example class
 }
 ```
 
-**SingletonNetwokHandler\<TParent>** singleton abstract class for simpler networking
+**SingletonNetwokHandler\<TParent>** singleton abstract class for simpler networking  
 Usage example:
 ```C#
 using BepInEx;             // for BepInPlugin class
