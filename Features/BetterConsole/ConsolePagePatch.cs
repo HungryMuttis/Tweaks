@@ -29,6 +29,10 @@ namespace Tweaks.Features.BetterConsole
                 "AttemptParseCommand",
                 postfix: nameof(Scrollfix_Postfix)
             );
+            Tweaks.Patcher.Patch(
+                "ConstructConsole",
+                postfix: nameof(Scrollfix_Postfix)
+            );
         }
 
         // PATCHES //
