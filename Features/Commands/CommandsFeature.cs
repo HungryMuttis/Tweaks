@@ -28,6 +28,7 @@ namespace Tweaks.Features.Commands
         {
             new GameObject("PlayersNetworkHandler", typeof(PlayersNetworkHandler));
             Patches.PlayerPatch.Init();
+            Patches.UI_HealthPatch.Init();
 
             if (!Chainloader.PluginInfos.ContainsKey("Tipe.TipeMod")) DebugUIHandlerPatch.Init();
         }
