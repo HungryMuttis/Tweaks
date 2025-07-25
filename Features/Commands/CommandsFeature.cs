@@ -27,6 +27,7 @@ namespace Tweaks.Features.Commands
         public override void Initialize()
         {
             new GameObject("PlayersNetworkHandler", typeof(PlayersNetworkHandler));
+            Patches.BotPatch.Init();
             Patches.PlayerPatch.Init();
             Patches.UI_HealthPatch.Init();
 
