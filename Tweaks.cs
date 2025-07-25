@@ -17,7 +17,6 @@ namespace Tweaks
         internal new static BepInEx.Logging.ManualLogSource Logger { get; private set; } = default!;
         internal static HarmonyPatcher Patcher { get; private set; } = default!;
         private FeatureManager Manager = default!;
-        private const string PluginInfo = $"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION}";
 
         private void Awake()
         {
@@ -25,17 +24,11 @@ namespace Tweaks
             Patcher = new(MyPluginInfo.PLUGIN_GUID, Logger);
             Instance = this;
 
-            if (!Config.Bind("", "Enabled", true, "Enables this mod").Value)
-            {
-                Logger.LogInfo($"{PluginInfo} is disabled.");
-                return;
-            }
-
             Manager = new(Logger, Config);
             Logger.LogDebug("Hooking...");
             Manager.InitializeFeatures();
             Logger.LogDebug("Finished Hooking!");
-            Logger.LogInfo($"{PluginInfo} has loaded!");
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
         }
 
         internal static void UnhookAll()
