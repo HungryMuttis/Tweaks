@@ -22,6 +22,9 @@ namespace Tweaks.Features.BetterConsole
         private static Dictionary<Type, CLITypeParser> Parsers = [];
         private static readonly MethodInfo ConvertMethod = AccessTools.Method(typeof(ConsoleHandler), "ConvertParameter");
         private static ConsoleCommand[] ConsoleCommands = null!;
+        private static readonly Dictionary<MethodInfo, ConsoleCommandAttribute?> Attributes = [];
+
+        private const string HelpCommand = "Help";
 
         internal static void Init()
         {
@@ -43,8 +46,7 @@ namespace Tweaks.Features.BetterConsole
         // PATCHES //
         public static void Initialize_Postfix()
         {
-            FieldInfo commands = AccessTools.Field(typeof(ConsoleHandler), "m_consoleCommands");
-
+            FieldInfo m_consoleCommandsField = AccessTools.Field(typeof(ConsoleHandler), "m_consoleCommands");
             BetterConsoleFeature.Debug("Searching for custom commands...");
 
             List<MethodInfo> customCommands = FindCustomCommands();
@@ -55,7 +57,11 @@ namespace Tweaks.Features.BetterConsole
                 return;
             }
 
-            List<ConsoleCommand> cmds = [.. (ConsoleCommand[])commands.GetValue(null)];
+            List<ConsoleCommand> consoleCommands = [.. (ConsoleCommand[])m_consoleCommandsField.GetValue(null)];
+
+            Attributes.Clear();
+            foreach (ConsoleCommand command in consoleCommands)
+                Attributes[command.MethodInfo] = null;
 
             int commandsAdded = 0;
             foreach (MethodInfo method in customCommands)
@@ -75,34 +81,25 @@ namespace Tweaks.Features.BetterConsole
 
                 if (add)
                 {
-                    cmds.Add(new ConsoleCommand(method));
+                    consoleCommands.Add(new ConsoleCommand(method));
+                    Attributes[method] = method.GetCustomAttribute<ConsoleCommandAttribute>();
                     commandsAdded++;
                 }
             }
 
-            commands.SetValue(null, cmds.ToArray());
-            ConsoleCommands = (ConsoleCommand[])commands.GetValue(null);
+            m_consoleCommandsField.SetValue(null, consoleCommands.ToArray());
+            ConsoleCommands = (ConsoleCommand[])m_consoleCommandsField.GetValue(null);
 
-            BetterConsoleFeature.Debug($"Added {commandsAdded} new commands. Total commands: {cmds.Count}");
+            BetterConsoleFeature.Debug($"Added {commandsAdded} new commands. Total commands: {consoleCommands.Count}");
 
             Parsers = (Dictionary<Type, CLITypeParser>)AccessTools.Field(typeof(ConsoleHandler), "m_typeParsers").GetValue(null);
         }
         public static bool ProcessCommand_Override(string command, ref bool __result)
         {
             if (HandleAmbiguity(command, ref __result)) return false;
-            _ambiguityContext = null;
+            if (command.Equals(HelpCommand, StringComparison.OrdinalIgnoreCase) || command.TrimEnd().Equals($"{HelpCommand}.{HelpCommand}", StringComparison.OrdinalIgnoreCase)) return HandleHelpCommand(ref __result);
 
-            if (command.Equals("Help", StringComparison.OrdinalIgnoreCase) || command.TrimEnd().Equals("Help.Help", StringComparison.OrdinalIgnoreCase))
-            {
-                IEnumerable<string> domains = ConsoleCommands.Select(c => c.DomainName).Distinct().OrderBy(d => d);
-                StringBuilder sb = new();
-                foreach (string cdomain in domains)
-                    sb.AppendLine($"  - {cdomain}");
-                sb.Append($"Type '<Domain>.Help' for help with a specific domain");
-                ConsoleLog(sb.ToString());
-                __result = true;
-                return false;
-            }
+            _ambiguityContext = null;
 
             string[]? parts = StringUtility.SplitOnFirstOfChar(command, '.');
             if (parts == null)
@@ -115,43 +112,9 @@ namespace Tweaks.Features.BetterConsole
             string trimmed = parts[1].TrimEnd();
             string commandName = trimmed.Split(' ').First();
             string rawArgs = trimmed.Contains(' ') ? trimmed[commandName.Length..].Trim() : "";
-            List<string> providedArgs = ParseArguments(rawArgs);
+            List<string> providedArgs = ParseArguments(rawArgs, out _, out _);
 
-            if (commandName.Equals("Help", StringComparison.OrdinalIgnoreCase))
-            {
-                List<ConsoleCommand> commands = [.. ConsoleCommands.Where(c => c.DomainName.Equals(domain, StringComparison.OrdinalIgnoreCase))];
-                if (!commands.Any())
-                {
-                    ConsoleError($"No domain named '{domain}' found");
-                    __result = true;
-                    return false;
-                }
-
-                StringBuilder sb = new();
-                bool first = true;
-                foreach (ConsoleCommand cmd in commands)
-                {
-                    ConsoleCommandAttribute? attr = cmd.MethodInfo.GetCustomAttribute<ConsoleCommandAttribute>();
-                    if (!first) sb.AppendLine();
-                    else first = false;
-                    sb.Append(cmd.Command);
-                    sb.Append(' ');
-                    sb.Append(string.Join(" ", Enumerable.Range(0, cmd.ParameterInfo.Length).Select(i =>
-                    {
-                        string param = $"{(attr?.Arguments != null && i < attr.Arguments.Length && !string.IsNullOrEmpty(attr.Arguments[i]) ? attr.Arguments[i] : cmd.ParameterInfo[i].Name)} ({cmd.ParameterInfo[i].ParameterType.Name})";
-                        return cmd.ParameterInfo[i].IsOptional ? $"[{param}]" : $"<{param}>";
-                    })));
-                    if (attr?.Description != null)
-                    {
-                        sb.AppendLine();
-                        sb.Append("  - ");
-                        sb.Append(attr?.Description);
-                    }
-                }
-                ConsoleLog(sb.ToString());
-                __result = true;
-                return false;
-            }
+            if (commandName.Equals(HelpCommand, StringComparison.OrdinalIgnoreCase)) return HandleHelpCommand(ref __result, domain);
 
             List<ConsoleCommand> cmds = [.. ConsoleCommands.Where(c => c.DomainName == domain && c.Command == commandName)];
             if (cmds.Count == 0)
@@ -160,71 +123,78 @@ namespace Tweaks.Features.BetterConsole
                 return false;
             }
 
-            List<ConsoleCommand> validCmds = FindValidCmds(cmds, providedArgs);
-
-            return HandleCommandExecution(validCmds, providedArgs, commandName, ref __result);
+            return HandleCommandExecution(FindValidCmds(cmds, providedArgs), providedArgs, commandName, ref __result);
         }
         public static bool FindSuggestions_Override(string input, ref List<Suggestion> __result)
         {
             __result ??= [];
             if (string.IsNullOrEmpty(input)) return false;
-            FindCommandSuggestions(input, ref __result);
-            AddParameterSuggestions(input, ref __result);
+            string[] split = StringUtility.SplitOnFirstOfChar(input, ' ');
+            string domain;
+            string? command;
+            List<string> args;
+            bool next = false;
+            int level, lastStart = -1;
+
+            if (split == null)
+            {
+                GetCommand(input, out domain, out command);
+                if (command == null) level = 0;
+                else level = 1;
+                args = [];
+            }
+            else
+            {
+                GetCommand(split[0], out domain, out command);
+                level = 2;
+                args = ParseArguments(split[1], out next, out lastStart);
+            }
+
+            FindCommandSuggestions(domain, command, args, next, level, ref __result);
+            AddParameterSuggestions(input, command, args, next, lastStart, level, ref __result);
             return false;
         }
 
         // HELPER METHODS //
-        private static void FindCommandSuggestions(string input, ref List<Suggestion> __result)
+        private static void FindCommandSuggestions(string domain, string? command, List<string>? args, bool next, int level, ref List<Suggestion> __result)
         {
-            if (!input.Contains('.'))
+            if (level == 0)
             {
-                __result = [.. ConsoleCommands.Select(c => c.DomainName).Distinct().Where(d => d.Contains(input, StringComparison.OrdinalIgnoreCase)).Select(d => new DomainSuggestion(d))];
-                if ("Help".Contains(input, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is DomainSuggestion d && d.Domain.Equals("Help", StringComparison.OrdinalIgnoreCase)))
-                    __result.Add(new DomainSuggestion("Help"));
+                __result = [.. ConsoleCommands.Select(c => c.DomainName).Distinct().Where(d => d.Contains(domain, StringComparison.OrdinalIgnoreCase)).Select(d => new DomainSuggestion(d))];
+                if (HelpCommand.Contains(domain, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is DomainSuggestion d && d.Domain.Equals(HelpCommand, StringComparison.OrdinalIgnoreCase)))
+                    __result.Add(new DomainSuggestion(HelpCommand));
                 return;
             }
 
-            string[] split = StringUtility.SplitOnFirstOfChar(input, '.');
-            HashSet<ConsoleCommand> possibleCommands = [.. ConsoleCommands.Where(c => c.DomainName == split[0])];
+            HashSet<ConsoleCommand> possibleCommands = [.. ConsoleCommands.Where(c => c.DomainName == domain)];
             if (possibleCommands.Count == 0) return;
 
-            string cmd = split[1];
-            bool finished = cmd.Contains(' ');
-
-            if (!finished)
+            if (level == 1)
             {
-                __result = [.. possibleCommands.Where(c => c.Command.StartsWith(cmd)).Select(c => new CommandSuggestion(c.DomainName, c.Command, c.ParameterInfo))];
-                if ("Help".Contains(cmd, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is CommandSuggestion c && c.Command.Equals("Help", StringComparison.OrdinalIgnoreCase)))
-                    __result.Add(new CommandSuggestion(split[0], "Help", []));
+                __result = [.. possibleCommands.Where(c => c.Command.StartsWith(command)).Select(c => new CommandSuggestion(c.DomainName, c.Command, c.ParameterInfo))];
+                if (HelpCommand.Contains(command, StringComparison.OrdinalIgnoreCase) && !__result.Any(s => s is CommandSuggestion c && c.Command.Equals(HelpCommand, StringComparison.OrdinalIgnoreCase)))
+                    __result.Add(new CommandSuggestion(domain, HelpCommand, []));
                 return;
             }
+            possibleCommands = [.. possibleCommands.Where(c => c.MethodInfo.Name == command && c.ParameterInfo.Length != 0)];
 
-            string[] splitCommand = cmd.Split(' ');
-            cmd = splitCommand.First();
-            string rawArgs = string.Join(' ', splitCommand.Skip(1));
-
-            possibleCommands = [.. possibleCommands.Where(c => c.MethodInfo.Name == cmd && c.ParameterInfo.Length != 0)];
-
-            List<string> args = ParseArguments(rawArgs);
-            bool next = rawArgs.EndsWith(" ");
-
-            foreach (ConsoleCommand command in possibleCommands)
+            foreach (ConsoleCommand cmd in possibleCommands)
             {
-                if (next && command.ParameterInfo.Length <= args.Count) continue;
-                if (command.ParameterInfo.Length < args.Count) continue;
+                if (next && cmd.ParameterInfo.Length <= args!.Count) continue;
+                if (cmd.ParameterInfo.Length < args!.Count) continue;
 
                 bool possible = true;
                 for (int i = 0; i < args.Count; i++)
                 {
                     if (i == args.Count - 1 && !next)
                     {
-                        if (!PossibleArgument(args[i], command.ParameterInfo[i].ParameterType))
+                        if (!PossibleArgument(args[i], cmd.ParameterInfo[i].ParameterType))
                         {
                             possible = false;
                             break;
                         }
                     }
-                    else if (!TryConvertParameter(args[i], command.ParameterInfo[i].ParameterType, out object? _))
+                    else if (!TryConvertParameter(args[i], cmd.ParameterInfo[i].ParameterType, out object? _))
                     {
                         possible = false;
                         break;
@@ -232,31 +202,50 @@ namespace Tweaks.Features.BetterConsole
                 }
 
                 if (possible)
-                    __result.Add(new CommandSuggestion(command.DomainName, command.Command, command.ParameterInfo));
+                    __result.Add(new CommandSuggestion(cmd.DomainName, cmd.Command, cmd.ParameterInfo));
             }
         }
-        private static void AddParameterSuggestions(string input, ref List<Suggestion> __result)
+        private static void AddParameterSuggestions(string input, string? command, List<string>? args, bool next, int lastStart, int level, ref List<Suggestion> __result)
         {
-            if (!StringUtility.MakeSureNoDoublleChar(input, ' ')) return;
 
-            string[] parts = input.Split(' ');
-            string typeLine = string.Join(' ', parts.Take(parts.Length - 1)) + ' ';
-            int index = parts.Length - 2;
-            if (index < 0) return;
-            foreach (Suggestion suggestion in __result.ToList())
+            if (level == 0) return;
+            if (level == 1 && !next) return;
+            args ??= [];
+
+            string carg = "";
+            int index = 0;
+
+            if (next)
+                index = args.Count;
+            else
             {
-                if (suggestion is not CommandSuggestion cmdSuggestion || cmdSuggestion.ParameterInfos.Length <= index || !input.Contains(cmdSuggestion.FullCommand))
-                    continue;
+                if (args.Count > 0)
+                {
+                    index = args.Count - 1;
+                    carg = args[index];
+                }
+                else
+                    index = 0;
+            }
+
+            string typeLine = next ? input : input[..(StringUtility.SplitOnFirstOfChar(input, ' ')[0].Length + 1 + lastStart)];
+
+            HashSet<string> addedAutocompletes = [];
+
+            for (int i = __result.Count - 1; i >= 0; i--)
+            {
+                if (__result[i] is not CommandSuggestion cmdSuggestion || !cmdSuggestion.Command.Equals(command, StringComparison.OrdinalIgnoreCase)) continue;
+                if (cmdSuggestion.ParameterInfos.Length <= index) continue;
 
                 cmdSuggestion.HighlightParameter(index);
                 ParameterInfo info = cmdSuggestion.ParameterInfos[index];
-                if (!Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser))
-                    continue;
 
-                List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(parts.Last());
+                if (!Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser)) continue;
+
+                List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(carg);
                 string displayLine = cmdSuggestion.GetDisplayTextWithMaxParameter(index, false);
                 foreach (ParameterAutocomplete autocomplete in autocompletes)
-                    if (!__result.Any(s => s is ParameterSuggestion p && p.ParameterInput == autocomplete.Value))
+                    if (addedAutocompletes.Add(autocomplete.Value))
                         __result.Add(new ParameterSuggestion(displayLine, typeLine, autocomplete.Value));
             }
         }
@@ -385,47 +374,81 @@ namespace Tweaks.Features.BetterConsole
                 return false;
             }
         }
-        private static List<string> ParseArguments(string argumentString)
+        private static List<string> ParseArguments(string argumentString, out bool next, out int lastStart)
         {
+            next = false;
+            lastStart = 0;
             List<string> args = [];
             if (string.IsNullOrWhiteSpace(argumentString)) return args;
 
             StringBuilder carg = new();
             bool inQuotes = false;
+            int currStart = 0;
 
             for (int i = 0; i < argumentString.Length; i++)
             {
                 char c = argumentString[i];
 
-                if (c == '\\' && i + 1 < argumentString.Length)
+                if (c == '\\')
                 {
-                    carg.Append(argumentString[i + 1]);
-                    i++;
+                    next = false;
+                    if (i + 1 < argumentString.Length)
+                    {
+                        carg.Append(argumentString[i + 1]);
+                        i++;
+                    }
+                    else
+                        carg.Append(c);
                     continue;
                 }
 
                 if (c == '"')
                 {
                     inQuotes = !inQuotes;
+                    if (!inQuotes && carg.Length == 0 && i > currStart)
+                    {
+                        args.Add("");
+                        currStart = i + 1;
+                    }
+                    next = false;
                     continue;
                 }
 
                 if (c == ' ' && !inQuotes)
                 {
-                    if (carg.Length > 0)
-                    {
-                        args.Add(carg.ToString());
-                        carg.Clear();
-                    }
+                    lastStart = currStart;
+                    currStart = i + 1;
+                    args.Add(carg.ToString());
+                    carg.Clear();
+                    next = true;
                 }
                 else
+                {
+                    if (next)
+                        lastStart = currStart;
+                    next = false;
                     carg.Append(c);
+                }
             }
 
             if (carg.Length > 0)
                 args.Add(carg.ToString());
 
             return args;
+        }
+        private static void GetCommand(string info, out string domain, out string? command)
+        {
+            string[] split = StringUtility.SplitOnFirstOfChar(info, '.');
+            if (split == null)
+            {
+                domain = info;
+                command = null;
+            }
+            else
+            {
+                domain = split[0];
+                command = split[1];
+            }
         }
         private static List<MethodInfo> FindCustomCommands()
         {
@@ -441,7 +464,12 @@ namespace Tweaks.Features.BetterConsole
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    BetterConsoleFeature.Error($"Could not load types from assembly {assembly.FullName}: {ex.Message}");
+                    StringBuilder sb = new();
+                    sb.AppendLine($"Could not load types from assembly {assembly.FullName}: {ex.Message}");
+                    if (ex.LoaderExceptions != null)
+                        foreach (Exception loaderEx in ex.LoaderExceptions)
+                            sb.AppendLine($"  - LoaderException: {loaderEx.Message}");
+                    BetterConsoleFeature.Error(sb);
                 }
                 catch (Exception ex)
                 {
@@ -449,6 +477,51 @@ namespace Tweaks.Features.BetterConsole
                 }
             }
             return methods;
+        }
+        private static bool HandleHelpCommand(ref bool __result, string? domain = null)
+        {
+            StringBuilder sb = new();
+            if (domain == null)
+            {
+                IEnumerable<string> domains = ConsoleCommands.Select(c => c.DomainName).Distinct().OrderBy(d => d);
+                foreach (string cdomain in domains)
+                    sb.AppendLine(cdomain);
+                sb.Append($"Type '<Domain>.{HelpCommand}' for help with a specific domain");
+            }
+            else
+            {
+                List<ConsoleCommand> commands = [.. ConsoleCommands.Where(c => c.DomainName.Equals(domain, StringComparison.OrdinalIgnoreCase))];
+                if (!commands.Any())
+                {
+                    ConsoleError($"No domain named '{domain}' found");
+                    __result = true;
+                    return false;
+                }
+
+                bool first = true;
+                foreach (ConsoleCommand cmd in commands)
+                {
+                    Attributes.TryGetValue(cmd.MethodInfo, out ConsoleCommandAttribute? attr);
+                    if (!first) sb.AppendLine();
+                    else first = false;
+                    sb.Append(cmd.Command);
+                    sb.Append(' ');
+                    sb.Append(string.Join(" ", Enumerable.Range(0, cmd.ParameterInfo.Length).Select(i =>
+                    {
+                        string param = $"{(attr?.Arguments != null && i < attr.Arguments.Length && !string.IsNullOrEmpty(attr.Arguments[i]) ? attr.Arguments[i] : cmd.ParameterInfo[i].Name)} ({cmd.ParameterInfo[i].ParameterType.Name})";
+                        return cmd.ParameterInfo[i].IsOptional ? $"[{param}]" : $"<{param}>";
+                    })));
+                    if (attr?.Description != null)
+                    {
+                        sb.AppendLine();
+                        sb.Append("  - ");
+                        sb.Append(attr?.Description);
+                    }
+                }
+            }
+            ConsoleLog(sb.ToString());
+            __result = true;
+            return false;
         }
         private static void ConsoleError(string text) => UnityEngine.Debug.LogError(text);
         private static void ConsoleLog(string text) => UnityEngine.Debug.Log(text);
