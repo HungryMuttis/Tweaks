@@ -1,4 +1,5 @@
 ﻿using Tweaks.Features.BetterConsole;
+using UnityEngine;
 
 namespace Tweaks.Features.Commands.Classes
 {
@@ -14,5 +15,11 @@ namespace Tweaks.Features.Commands.Classes
 
         [ConsoleCommand("Sets the throw strength multiplier for the specified player", "", "Times to multiply the throw strength")]
         public static void SetThrowStrengthMultiplier(global::Player Player, float Multiplier) => PlayerNetworkHandler.SendThrowStrengthMultiplier(Player, Multiplier);
+
+        [ConsoleCommand("test", "eneter text")]
+        public static void Test(string str, global::Player _, string __, global::Player ___)
+        {
+            Debug.Log(str);
+        }
     }
 }
