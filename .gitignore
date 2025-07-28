@@ -366,4 +366,4 @@ FodyWeavers.xsd
 HungryMuttis-Tweaks-*/
 
 # Solution
-.sln
+*.sln
