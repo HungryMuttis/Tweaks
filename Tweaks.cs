@@ -1,12 +1,11 @@
-using System.Reflection;
 using BepInEx;
-using MonoMod.RuntimeDetour.HookGen;
-using Tweaks.Features;
+using CWAPI;
 
 namespace Tweaks
 {
     [ContentWarningPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_VERSION, false)]
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("HungryMuttis.CWAPI")]
     [BepInDependency("RugbugRedfern.MyceliumNetworking")]
     [BepInDependency("Tipe.TipeMod", BepInDependency.DependencyFlags.SoftDependency)]
     public class Tweaks : BaseUnityPlugin
@@ -35,7 +34,6 @@ namespace Tweaks
         {
             Logger.LogDebug("Unhooking...");
 
-            HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
             Patcher.UnpatchAll();
 
             Logger.LogDebug("Finished Unhooking!");

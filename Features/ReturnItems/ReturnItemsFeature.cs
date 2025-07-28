@@ -1,4 +1,6 @@
-﻿namespace Tweaks.Features.ReturnItems
+﻿using CWAPI;
+
+namespace Tweaks.Features.ReturnItems
 {
     [Feature]
     internal class ReturnItemsFeature : Feature<ReturnItemsFeature>

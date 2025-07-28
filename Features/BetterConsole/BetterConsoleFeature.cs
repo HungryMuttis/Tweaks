@@ -1,4 +1,6 @@
-﻿namespace Tweaks.Features.BetterConsole
+﻿using CWAPI;
+
+namespace Tweaks.Features.BetterConsole
 {
     [Feature(true)]
     internal class BetterConsoleFeature : Feature<BetterConsoleFeature>

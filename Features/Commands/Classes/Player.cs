@@ -1,5 +1,4 @@
 ﻿using Tweaks.Features.BetterConsole;
-using UnityEngine;
 
 namespace Tweaks.Features.Commands.Classes
 {

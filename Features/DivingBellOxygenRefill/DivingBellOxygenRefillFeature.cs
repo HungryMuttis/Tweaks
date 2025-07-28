@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using CWAPI;
 
 namespace Tweaks.Features.DivingBellOxygenRefill
 {

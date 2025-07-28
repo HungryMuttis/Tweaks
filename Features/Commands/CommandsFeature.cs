@@ -1,5 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using CWAPI;
 using UnityEngine;
 
 namespace Tweaks.Features.Commands
