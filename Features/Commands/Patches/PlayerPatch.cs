@@ -1,7 +1,4 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using Tweaks.Features;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Tweaks.Features.Commands.Patches
 {
@@ -25,7 +22,7 @@ namespace Tweaks.Features.Commands.Patches
         // PATCHES //
         public static void Start_Postfix(Player __instance)
         {
-            if (__instance.gameObject.GetComponent<PlayerNetworkHandler>() == null)
+            if (!__instance.ai && __instance.gameObject.GetComponent<PlayerNetworkHandler>() == null)
                 __instance.gameObject.AddComponent<PlayerNetworkHandler>();
         }
         public static void RequestCreatePickup_Prefix(ref Vector3 vel)

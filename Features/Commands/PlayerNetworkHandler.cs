@@ -10,20 +10,33 @@ namespace Tweaks.Features.Commands
         protected override uint MOD_ID => Tweaks.MOD_ID;
         protected override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
 
-        [CustomRPC] public void SetOxygen(float oxygen)
+        [CustomRPC] public void SetPlayerRemainingOxygen(float oxygen)
         {
             if (ParentComponent == null || ParentComponent.data == null) return;
 
             ParentComponent.data.remainingOxygen = Mathf.Clamp(oxygen, 0f, ParentComponent.data.maxOxygen);
         }
-        public static void SendOxygen(Player targetPlayer, float oxygen, bool percent = false)
+        public static void SendRemainingOxygen(Player targetPlayer, float oxygen)
         {
-            Send(targetPlayer, nameof(SetOxygen), ReliableType.Reliable,
-                percent ? targetPlayer.data.maxOxygen * oxygen / 100f : oxygen
+            Send(targetPlayer, nameof(SetPlayerRemainingOxygen), ReliableType.Reliable,
+                oxygen
             );
         }
 
-        [CustomRPC] public void SetThrowStrengthMultiplier(float multiplier)
+        [CustomRPC] public void SetPlayerMaxOxygen(float oxygen)
+        {
+            if (ParentComponent == null || ParentComponent.data == null) return;
+
+            ParentComponent.data.maxOxygen = oxygen;
+        }
+        public static void SendMaxOxygen(Player targetPlayer, float oxygen)
+        {
+            Send(targetPlayer, nameof(SetPlayerMaxOxygen), ReliableType.Reliable,
+                oxygen
+            );
+        }
+
+        [CustomRPC] public void SetPlayerThrowStrengthMultiplier(float multiplier)
         {
             if (ParentComponent == null) return;
 
@@ -33,7 +46,7 @@ namespace Tweaks.Features.Commands
         }
         public static void SendThrowStrengthMultiplier(Player targetPlayer, float multiplier)
         {
-            Send(targetPlayer, nameof(SetThrowStrengthMultiplier), ReliableType.Reliable,
+            Send(targetPlayer, nameof(SetPlayerThrowStrengthMultiplier), ReliableType.Reliable,
                 multiplier
             );
         }
