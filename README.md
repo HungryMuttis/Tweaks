@@ -11,6 +11,19 @@ And more tweaks to come!
 - **Return Items:** Returns any items that fall off the surface
 - **Console Improvements:** Enhancements for the in-game console
 
+## Commands
+### Player
+- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Heals the specified player specified value
+- **`.SetMaxOxygen <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Sets the max oxygen for the specified player
+- **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Sets the remaining oxygen for the specified player
+- **`.SetThrowStrengthMultiplier <Player (Player)> <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
+### Players
+- **`.Heal <Value (Single)> [Percent (Boolean) = false]`**: Heals all of the players the specified amount
+- **`.SetMaxOxygen <Value (Single)> [Percent (Boolean) = false]`**: Sets the max oxygen for all of the players
+- **`.SetRemainingOxygen <Value (Single)> [Percent (Boolean) = false]`**: Sets the remaining oxygen for all of the players
+- **`.SetThrowStrengthMultiplier <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
+- **`.SetMaxHealth <Value (Single)>`**: Sets max health for all players to the specified value
+
 ## For developers
 ### Better Console
 If you're making mods and want a better console experience, you can reference this mod's assembly. This lets you use the `Tweaks.Features.BetterConsole.ConsoleCommandAttribute`
@@ -42,14 +55,6 @@ public class ExampleCommandsClass : ICommandsClass // the class can be named how
     }
 }
 ```
-
-## Commands
-### Player
-- **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Sets the remaining oxygen for the specified player
-- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean)]`**: Heals the specified player specified value
-- **`.SetThrowStrengthMultiplier <Player (Player)> <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
-### Players
-- **`.SetMaxHealth <Value (Single)>`**: Sets the max health for all players to the specified value
 
 ## Testing Note
 I've tested this mod with two game instances (just me), but it *should* work fine with more players
