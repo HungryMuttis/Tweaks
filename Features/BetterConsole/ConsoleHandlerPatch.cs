@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using UnityEngine;
+using UnityEngine.UIElements;
 using Zorro.Core;
 using Zorro.Core.CLI;
 
@@ -213,7 +215,7 @@ namespace Tweaks.Features.BetterConsole
             args ??= [];
 
             string carg = "";
-            int index = 0;
+            int index;
 
             if (next)
                 index = args.Count;
@@ -239,10 +241,16 @@ namespace Tweaks.Features.BetterConsole
 
                 cmdSuggestion.HighlightParameter(index);
                 ParameterInfo info = cmdSuggestion.ParameterInfos[index];
+                List<ParameterAutocomplete> autocompletes;
 
-                if (!Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser)) continue;
+                if (Parsers.TryGetValue(info.ParameterType, out CLITypeParser parser))
+                    autocompletes = parser.FindAutocomplete(carg);
+                else if (info.ParameterType.IsEnum)
+                    autocompletes = [.. Enum.GetNames(info.ParameterType)
+                        .Where(s => s.StartsWith(carg))
+                        .Select(s => new ParameterAutocomplete(s))];
+                else continue;
 
-                List<ParameterAutocomplete> autocompletes = parser.FindAutocomplete(carg);
                 string displayLine = cmdSuggestion.GetDisplayTextWithMaxParameter(index, false);
                 foreach (ParameterAutocomplete autocomplete in autocompletes)
                     if (addedAutocompletes.Add(autocomplete.Value))
@@ -311,6 +319,8 @@ namespace Tweaks.Features.BetterConsole
             if (paramType == typeof(int)) return int.TryParse(arg, out int _);
             if (Parsers.TryGetValue(paramType, out CLITypeParser parser))
                 return parser.FindAutocomplete(arg).Any();
+            else if (paramType.IsEnum)
+                return Enum.GetNames(paramType).Any(n => n.StartsWith(arg));
             return true;
         }
         private static List<ConsoleCommand> FindValidCmds(List<ConsoleCommand> candidates, List<string> providedArgs)
@@ -358,6 +368,14 @@ namespace Tweaks.Features.BetterConsole
         }
         private static bool TryConvertParameter(string arg, Type type, [NotNullWhen(true)] out object? value)
         {
+            if (type.IsEnum && !Parsers.ContainsKey(type))
+            {
+                if (Enum.TryParse(type, arg, false, out value))
+                    return true;
+                value = null;
+                return false;
+            }
+
             try
             {
                 value = ConvertMethod.Invoke(null, [arg, type]);
