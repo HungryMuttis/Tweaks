@@ -1,54 +1,28 @@
 ﻿using MyceliumNetworking;
-using Tweaks.Features.Commands.Patches;
-using UnityEngine;
 using CWAPI;
+using UnityEngine;
 
 namespace Tweaks.Features.Commands
 {
     internal class PlayerNetworkHandler : NetworkComponent<PlayerNetworkHandler, Player>
     {
-        protected override uint MOD_ID => Tweaks.MOD_ID;
         protected override BepInEx.Logging.ManualLogSource LogSource => Tweaks.Logger;
+        protected override uint MOD_ID => Tweaks.MOD_ID;
 
-        [CustomRPC] public void SetPlayerRemainingOxygen(float oxygen)
-        {
-            if (ParentComponent == null || ParentComponent.data == null) return;
+        [CustomRPC] private void RPC_SetPlayerHealth(float health) => PlayerManager.SetHealth(ParentComponent, health);
+        public static void SendHealth(Player targetPlayer, float health) => Send(targetPlayer, nameof(RPC_SetPlayerHealth), ReliableType.Reliable,
+            health);
 
-            ParentComponent.data.remainingOxygen = Mathf.Clamp(oxygen, 0f, ParentComponent.data.maxOxygen);
-        }
-        public static void SendRemainingOxygen(Player targetPlayer, float oxygen)
-        {
-            Send(targetPlayer, nameof(SetPlayerRemainingOxygen), ReliableType.Reliable,
-                oxygen
-            );
-        }
+        [CustomRPC] private void RPC_SetPlayerGravityDirection(Vector3 direction) => PlayerManager.SetGravityDirection(ParentComponent, direction);
+        public static void SendGravityDirection(Player targetPlayer, Vector3 direction) => Send(targetPlayer, nameof(RPC_SetPlayerGravityDirection), ReliableType.Reliable,
+            direction);
 
-        [CustomRPC] public void SetPlayerMaxOxygen(float oxygen)
-        {
-            if (ParentComponent == null || ParentComponent.data == null) return;
+        [CustomRPC] private void RPC_SetPlayerMaxOxygen(float maxOxygen) => PlayerManager.SetMaxOxygen(ParentComponent, maxOxygen);
+        public static void SendMaxOxygen(Player targetPlayer, float maxOxygen) => Send(targetPlayer, nameof(RPC_SetPlayerMaxOxygen), ReliableType.Reliable,
+            maxOxygen);
 
-            ParentComponent.data.maxOxygen = oxygen;
-        }
-        public static void SendMaxOxygen(Player targetPlayer, float oxygen)
-        {
-            Send(targetPlayer, nameof(SetPlayerMaxOxygen), ReliableType.Reliable,
-                oxygen
-            );
-        }
-
-        [CustomRPC] public void SetPlayerThrowStrengthMultiplier(float multiplier)
-        {
-            if (ParentComponent == null) return;
-
-            if (Player.localPlayer != ParentComponent) return;
-
-            PlayerPatch.ThrowStrengthMultiplier = multiplier;
-        }
-        public static void SendThrowStrengthMultiplier(Player targetPlayer, float multiplier)
-        {
-            Send(targetPlayer, nameof(SetPlayerThrowStrengthMultiplier), ReliableType.Reliable,
-                multiplier
-            );
-        }
+        [CustomRPC] private void RPC_SetPlayerRemainingOxygen(float remainingOxygen) => PlayerManager.SetRemainingOxygen(ParentComponent, remainingOxygen, false);
+        public static void SendRemainingOxygen(Player targetPlayer, float remainingOxygen) => Send(targetPlayer, nameof(RPC_SetPlayerRemainingOxygen), ReliableType.Reliable,
+            remainingOxygen);
     }
 }

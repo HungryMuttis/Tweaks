@@ -12,15 +12,22 @@ And more tweaks to come!
 - **Console Improvements:** Enhancements for the in-game console
 
 ## Commands
+### Console
+- **`.Disable <Player (Player)>`**: Disables console for the specified player
+- **`.Enable <Player (Player)>`**: Enables console for the specified player
 ### Player
-- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Heals the specified player specified value
-- **`.SetMaxOxygen <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Sets the max oxygen for the specified player
-- **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean) = false]`**: Sets the remaining oxygen for the specified player
+- **`.Heal <Player (Player)> <Value (Single)> [Percent (Boolean = false)]`**: Heals the specified player specified value
+- **`.SetGravity <Player (Player)> <Value (Single)>`**: Sets the gravity for the specified player
+- **`.SetHealth <Player (Player)> <Value (Single)> [Percent (Boolean = false)]`**: Sets the health for the specified player
+- **`.SetMaxOxygen <Player (Player)> <Value (Single)> [Percent (Boolean = false)]`**: Sets the max oxygen for the specified player
+- **`.SetRemainingOxygen <Player (Player)> <Value (Single)> [Percent (Boolean = false)]`**: Sets the remaining oxygen for the specified player
 - **`.SetThrowStrengthMultiplier <Player (Player)> <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
 ### Players
-- **`.Heal <Value (Single)> [Percent (Boolean) = false]`**: Heals all of the players the specified amount
-- **`.SetMaxOxygen <Value (Single)> [Percent (Boolean) = false]`**: Sets the max oxygen for all of the players
-- **`.SetRemainingOxygen <Value (Single)> [Percent (Boolean) = false]`**: Sets the remaining oxygen for all of the players
+- **`.Heal <Value (Single)> [Percent (Boolean = false)]`**: Heals all of the players the specified amount
+- **`.SetGravity <Value (Single)>`**: Sets the gravity for all players
+- **`.SetHealth <Value (Single)> [Percent (Boolean = false)]`**: Sets the health for all players
+- **`.SetMaxOxygen <Value (Single)> [Percent (Boolean = false)]`**: Sets the max oxygen for all of the players
+- **`.SetRemainingOxygen <Value (Single)> [Percent (Boolean = false)]`**: Sets the remaining oxygen for all of the players
 - **`.SetThrowStrengthMultiplier <Multiplier (float)>`**: Sets the throw strength multiplier for the specified player
 - **`.SetMaxHealth <Value (Single)>`**: Sets max health for all players to the specified value
 

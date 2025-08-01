@@ -30,6 +30,7 @@ namespace Tweaks.Features.Commands
 
             if (!PhotonNetwork.InRoom || (!PhotonNetwork.IsMasterClient && !AllowConsole)) return;
 
+            if (PhotonNetwork.CurrentRoom.IsOpen) Debug.LogError("Using commands before starting the game can lead to desyncs and weird issues");
             __instance.Show();
         }
     }

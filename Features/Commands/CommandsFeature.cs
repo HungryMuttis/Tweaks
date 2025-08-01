@@ -27,7 +27,7 @@ namespace Tweaks.Features.Commands
 
         public override void Initialize()
         {
-            new GameObject("PlayersNetworkHandler", typeof(PlayersNetworkHandler));
+            new GameObject("PlayersNetworkHandler", typeof(ClientNetworkHandler));
             Patches.BotPatch.Init();
             Patches.CD_ItemPatch.Init();
             Patches.PlayerPatch.Init();
