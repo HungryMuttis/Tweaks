@@ -35,16 +35,16 @@ namespace Tweaks.Features.BetterConsole
     [TypeParser(typeof(Player))]
     public class PlayerParser : CLITypeParser
     {
-        public override object Parse(string str)
-        {
-            return PlayerHandler.instance.players.FirstOrDefault(p => p.refs?.view?.Owner?.NickName.Equals(str, StringComparison.OrdinalIgnoreCase) ?? false) ?? throw new ArgumentException($"No player with username '{str}' exists");
-        }
-
         public override List<ParameterAutocomplete> FindAutocomplete(string parameterText)
         {
             return [.. PlayerHandler.instance.players
                 .Where(p => p.refs?.view?.Owner?.NickName != null && p.refs.view.Owner.NickName.StartsWith(parameterText, StringComparison.OrdinalIgnoreCase))
                 .Select(p => new ParameterAutocomplete(p.refs.view.Owner.NickName))];
+        }
+
+        public override object Parse(string str)
+        {
+            return PlayerHandler.instance.players.FirstOrDefault(p => p.refs?.view?.Owner?.NickName.Equals(str, StringComparison.OrdinalIgnoreCase) ?? false) ?? throw new ArgumentException($"No player with username '{str}' exists");
         }
     }
 }
